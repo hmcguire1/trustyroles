@@ -51,8 +51,11 @@ def get_arpd(role_name):
     ardp = role.get('Role', {}).get('AssumeRolePolicyDocument', {})
 
     print(f"\nARNS:")
-    for arn in ardp['Statement'][0]['Principal']['AWS']:
-        print(f"  {arn}")
+    if isinstance(ardp['Statement'][0]['Principal']['AWS'], list):
+        for arn in ardp['Statement'][0]['Principal']['AWS']:
+            print(f"  {arn}")
+    else:
+        print(f"{ardp['Statement'][0]['Principal']['AWS']}")
     print(f"Conditions:")
     
 
