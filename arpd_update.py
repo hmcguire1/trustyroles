@@ -11,7 +11,7 @@ PARSER = argparse.ArgumentParser()
 def _main():
     PARSER.add_argument(
         '-a', '--arn',
-        type=list,
+        type=str,
         nargs='+',
         required=True,
         help='Add new ARNs to trust policy. Takes a list of ARNS.'
@@ -28,7 +28,7 @@ def _main():
         '-m', '--method',
         type=str,
         required=True,
-        choices=['update', 'remove'],
+        choices=['update', 'remove', 'get'],
         help='Takes choice of method to update or remove.'
     )
 
@@ -39,11 +39,15 @@ def _main():
             args['arn'],
             args['update_role']
         )
-    else:
+    elif args['method'] == 'remove':
         remove_arn(
             args['arn'],
             args['update_role']
         )
+    else:
+        get_arpd(
+            args['update_role']
+        )       
 
 def get_arpd(role_name):
     iam_client = boto3.client('iam')
