@@ -13,8 +13,8 @@ def _main():
         '-a', '--arn',
         type=str,
         nargs='+',
-        required=True,
-        help='Add new ARNs to trust policy. Takes a list of ARNS.'
+        required=False,
+        help='Add new ARNs to trust policy. Takes a comma-seperated list of ARNS.'
     )
 
     PARSER.add_argument(
@@ -44,10 +44,12 @@ def _main():
             args['arn'],
             args['update_role']
         )
-    else:
+    elif args['method'] == 'get':
         get_arpd(
             args['update_role']
-        )       
+        )
+    else:
+        print(f"Provided method is invalid.")       
 
 def get_arpd(role_name):
     iam_client = boto3.client('iam')
@@ -59,7 +61,7 @@ def get_arpd(role_name):
         for arn in ardp['Statement'][0]['Principal']['AWS']:
             print(f"  {arn}")
     else:
-        print(f"{ardp['Statement'][0]['Principal']['AWS']}")
+        print(f"  {ardp['Statement'][0]['Principal']['AWS']}")
     print(f"Conditions:")
     
 
@@ -81,7 +83,7 @@ def update_arn(arn_list, role_name):
                     new_principal_list.append(arn)
                 new_principal_list.append(old_principal_list)
 
-    ardp['Statement'][0]['Principal']['AWS'] = new_principal_list
+            ardp['Statement'][0]['Principal']['AWS'] = new_principal_list
 
     for arn in arn_list:
         LOGGER.info("Updating Policy to add: '%s'", arn)
@@ -97,6 +99,7 @@ def remove_arn(arn_list, role_name):
     role = iam_client.get_role(RoleName=role_name)
     ardp = role.get('Role', {}).get('AssumeRolePolicyDocument', {})
     old_principal_list = ardp['Statement'][0]['Principal']['AWS']
+
     for arn in arn_list:
         if arn in old_principal_list:
             old_principal_list.remove(arn)
@@ -105,6 +108,7 @@ def remove_arn(arn_list, role_name):
 
     for arn in arn_list:
         LOGGER.info("Updating Policy to remove: '%s'", arn)
+
 
     iam_client.update_assume_role_policy(
         RoleName=role_name,
