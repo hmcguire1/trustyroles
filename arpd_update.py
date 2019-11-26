@@ -76,22 +76,24 @@ def update_arn(arn_list, role_name):
     for arn in arn_list:
         if arn not in old_principal_list:
             if isinstance(old_principal_list, list):
-                new_principal_list = [old_principal_list.append(arn) for arn in arn_list]
+                [old_principal_list.append(arn) for arn in arn_list]
+                ardp['Statement'][0]['Principal']['AWS'] = old_principal_list
             else:
                 new_principal_list = []
                 for arn in arn_list:
                     new_principal_list.append(arn)
                 new_principal_list.append(old_principal_list)
-
-            ardp['Statement'][0]['Principal']['AWS'] = new_principal_list
-
+                ardp['Statement'][0]['Principal']['AWS'] = new_principal_list
+                
+    #print(ardp['Statement'][0]['Principal']['AWS'])
     for arn in arn_list:
         LOGGER.info("Updating Policy to add: '%s'", arn)
-
+    
     iam_client.update_assume_role_policy(
         RoleName=role_name,
         PolicyDocument=json.dumps(ardp)
     )
+    
 # Remove method takes a list of ARNS and a role name to re,pve from trust policy of supplied role.
 def remove_arn(arn_list, role_name):
 
