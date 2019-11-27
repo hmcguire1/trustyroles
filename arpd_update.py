@@ -27,9 +27,16 @@ def _main():
     PARSER.add_argument(
         '-m', '--method',
         type=str,
-        required=True,
+        required=False,
         choices=['update', 'remove', 'get'],
         help='Takes choice of method to update or remove.'
+    )
+
+    PARSER.add_argument(
+        '-e', '--external_id',
+        type=str,
+        required=False,
+        help='Takes an external id as a string.'
     )
 
     args = vars(PARSER.parse_args())
@@ -49,12 +56,18 @@ def _main():
             args['update_role']
         )
     else:
-        print(f"Provided method is invalid.")       
+        if args['external_id'] == None:
+            print(f"Provided method is invalid.")
 
+    if args['external_id'] != None:
+        external_id(
+            external_id=args['external_id'],
+            role_name=args['update_role']
+        )
 def get_arpd(role_name):
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
-    ardp = role.get('Role', {}).get('AssumeRolePolicyDocument', {})
+    ardp = role['Role']['AssumeRolePolicyDocument']
 
     print(f"\nARNS:")
     if isinstance(ardp['Statement'][0]['Principal']['AWS'], list):
@@ -63,14 +76,27 @@ def get_arpd(role_name):
     else:
         print(f"  {ardp['Statement'][0]['Principal']['AWS']}")
     print(f"Conditions:")
+    if ardp['Statement'][0]['Condition']:
+        print(f"  {ardp['Statement'][0]['Condition']}")
     
+
+    
+def external_id(external_id, role_name):
+    iam_client = boto3.client('iam')
+    role = iam_client.get_role(RoleName=role_name)
+    ardp = role['Role']['AssumeRolePolicyDocument']
+    ardp['Statement'][0]['Condition'] = {'StringEquals': {"sts:ExternalId": external_id}}
+
+    iam_client.update_assume_role_policy(
+        RoleName=role_name,
+        PolicyDocument=json.dumps(ardp)
+    )
 
 # Update method takes a list of ARNS and a role name to add to trust policy of suppplied role.
 def update_arn(arn_list, role_name):
-
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
-    ardp = role.get('Role', {}).get('AssumeRolePolicyDocument', {})
+    ardp = role['Role']['AssumeRolePolicyDocument']
     old_principal_list = ardp['Statement'][0]['Principal']['AWS']
 
     for arn in arn_list:
@@ -96,10 +122,9 @@ def update_arn(arn_list, role_name):
     
 # Remove method takes a list of ARNS and a role name to re,pve from trust policy of supplied role.
 def remove_arn(arn_list, role_name):
-
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
-    ardp = role.get('Role', {}).get('AssumeRolePolicyDocument', {})
+    ardp = role['Role']['AssumeRolePolicyDocument']
     old_principal_list = ardp['Statement'][0]['Principal']['AWS']
 
     for arn in arn_list:
@@ -110,7 +135,6 @@ def remove_arn(arn_list, role_name):
 
     for arn in arn_list:
         LOGGER.info("Updating Policy to remove: '%s'", arn)
-
 
     iam_client.update_assume_role_policy(
         RoleName=role_name,
