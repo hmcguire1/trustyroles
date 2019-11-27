@@ -7,8 +7,10 @@ LOGGER = logging.getLogger('IAM-Policy-Update')
 logging.basicConfig(level=logging.INFO)
 PARSER = argparse.ArgumentParser()
 
-# Main method takes in list of ARNs, role to update, and method [update, remove].
+
 def _main():
+    """The _main method can take in a list of ARNs, role to update,
+        and method [get, update, remove]."""
     PARSER.add_argument(
         '-a', '--arn',
         type=str,
@@ -65,6 +67,8 @@ def _main():
             role_name=args['update_role']
         )
 def get_arpd(role_name):
+    """The get_arpd method takes in a role_name as a string
+        and provides trusted ARNS and Conditions."""
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
@@ -80,6 +84,8 @@ def get_arpd(role_name):
         print(f"  {ardp['Statement'][0]['Condition']}")
 
 def external_id(external_id, role_name):
+    """The external_id method takes an external_id and rolename as strings
+        to allow the addition of an externalId condition."""
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
@@ -90,8 +96,9 @@ def external_id(external_id, role_name):
         PolicyDocument=json.dumps(ardp)
     )
 
-# Update method takes a list of ARNS and a role name to add to trust policy of suppplied role.
 def update_arn(arn_list, role_name):
+    """The update_arn method takes a list of ARNS(arn_list) and a role_name
+        to add to trust policy of suppplied role."""
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
@@ -120,6 +127,8 @@ def update_arn(arn_list, role_name):
 
 # Remove method takes a list of ARNS and a role name to re,pve from trust policy of supplied role.
 def remove_arn(arn_list, role_name):
+    """The remove_arn method takes in a list of ARNS(arn_list) and a role_name
+        to remove ARNS from trust policy of supplied role."""
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
