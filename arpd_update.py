@@ -116,7 +116,6 @@ def update_arn(arn_list, role_name):
                 new_principal_list.append(old_principal_list)
                 ardp['Statement'][0]['Principal']['AWS'] = new_principal_list
 
-    #print(ardp['Statement'][0]['Principal']['AWS'])
     for arn in arn_list:
         LOGGER.info("Updating Policy to add: '%s'", arn)
 
