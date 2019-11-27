@@ -3,7 +3,7 @@ import logging
 import argparse
 import boto3
 
-LOGGER = logging.getLogger('ROLE-TRUST-POLICY')
+LOGGER = logging.getLogger('IAM-ROLE-TRUST-POLICY')
 logging.basicConfig(level=logging.INFO)
 PARSER = argparse.ArgumentParser()
 
