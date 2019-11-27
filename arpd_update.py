@@ -84,7 +84,7 @@ def get_arpd(role_name):
         print(f"  {ardp['Statement'][0]['Condition']}")
 
 def external_id(external_id, role_name):
-    """The external_id method takes an external_id and rolename as strings
+    """The external_id method takes an external_id and rol_ename as strings
         to allow the addition of an externalId condition."""
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
@@ -124,7 +124,6 @@ def update_arn(arn_list, role_name):
         PolicyDocument=json.dumps(ardp)
     )
 
-# Remove method takes a list of ARNS and a role name to re,pve from trust policy of supplied role.
 def remove_arn(arn_list, role_name):
     """The remove_arn method takes in a list of ARNS(arn_list) and a role_name
         to remove ARNS from trust policy of supplied role."""
