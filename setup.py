@@ -17,7 +17,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     entry_points = {
-        'console_scripts': ['ardp_update=trustyroles.arpd_update:_main'],
+        'console_scripts': ['arpd_update=trustyroles.arpd_update:_main'],
     },
     python_requires='>=3.6'
 )
