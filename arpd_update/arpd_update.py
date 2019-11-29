@@ -84,7 +84,7 @@ def get_arpd(role_name):
         print(f"  {ardp['Statement'][0]['Condition']}")
 
 def external_id(external_id, role_name):
-    """The external_id method takes an external_id and rol_ename as strings
+    """The external_id method takes an external_id and role_name as strings
         to allow the addition of an externalId condition."""
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
