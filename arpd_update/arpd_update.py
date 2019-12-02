@@ -35,7 +35,14 @@ def _main():
     )
 
     PARSER.add_argument(
-        '-e', '--external_id',
+        '-e', '--add_external_id',
+        type=str,
+        required=False,
+        help='Takes an external id as a string.'
+    )
+
+    PARSER.add_argument(
+        '-r', '--remove_external_id',
         type=str,
         required=False,
         help='Takes an external id as a string.'
@@ -58,12 +65,17 @@ def _main():
             args['update_role']
         )
     else:
-        if args['external_id'] is not None:
+        if args['add_external_id'] and args['remove_external_id'] is not None:
             print(f"Provided method is invalid.")
 
-    if args['external_id'] is not None:
-        external_id(
-            external_id=args['external_id'],
+    if args['add_external_id'] is not None:
+        add_external_id(
+            external_id=args['add_external_id'],
+            role_name=args['update_role']
+        )
+    if args['remove_external_id'] is not None:
+        remove_external_id(
+            external_id=args['remove_external_id'],
             role_name=args['update_role']
         )
 def get_arpd(role_name):
@@ -83,18 +95,34 @@ def get_arpd(role_name):
     if ardp['Statement'][0]['Condition']:
         print(f"  {ardp['Statement'][0]['Condition']}")
 
-def external_id(external_id, role_name):
-    """The external_id method takes an external_id and role_name as strings
+def add_external_id(external_id, role_name):
+    """The add_external_id method takes an external_id and role_name as strings
         to allow the addition of an externalId condition."""
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
-    ardp['Statement'][0]['Condition'] = {'StringEquals': {"sts:ExternalId": external_id}}
+    if ardp['Statement'][0]['Condition'] == None:
+        ardp['Statement'][0]['Condition'] = {'StringEquals': {"sts:ExternalId": external_id}}
+    else:
+        ardp['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
 
     iam_client.update_assume_role_policy(
         RoleName=role_name,
         PolicyDocument=json.dumps(ardp)
     )
+def remove_external_id(external_id, role_name):
+    """The remove_external_id method takes an external_id and role_name as strings
+        to allow the removal of an externalId condition."""
+    iam_client = boto3.client('iam')
+    role = iam_client.get_role(RoleName=role_name)
+    ardp = role['Role']['AssumeRolePolicyDocument']
+
+    if ardp['Statement'][0]['Condition'] is not None:
+        ardp['Statement'][0]['Condition'] = {}
+        iam_client.update_assume_role_policy(
+            RoleName=role_name,
+            PolicyDocument=json.dumps(ardp)
+        )
 
 def update_arn(arn_list, role_name):
     """The update_arn method takes a list of ARNS(arn_list) and a role_name

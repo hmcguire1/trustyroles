@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='trustyroles',
-    version='0.0.2',
+    version='0.1.4',
     description='AWS roles toolkit',
     packages=setuptools.find_packages(),
     url='https://github.com/hmcguire1/trustyroles',
@@ -17,7 +17,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     entry_points = {
-        'console_scripts': ['arpd_update=trustyroles.arpd_update:_main'],
+        'console_scripts': ['arpd_update=arpd_update.arpd_update:_main'],
     },
     python_requires='>=3.6'
 )
