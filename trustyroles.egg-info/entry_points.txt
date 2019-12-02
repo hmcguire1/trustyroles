@@ -1,3 +1,0 @@
-[console_scripts]
-arpd_update = arpd_update.arpd_update:_main
-
