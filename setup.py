@@ -2,11 +2,11 @@ import setuptools
 
 setuptools.setup(
     name='trustyroles',
-    version='0.1.4',
+    version='0.1.5',
     description='AWS roles toolkit',
     packages=setuptools.find_packages(),
     url='https://github.com/hmcguire1/trustyroles',
-    author_email='hmcguire8621@gmail.com',
+    author_email='hmcguire.dev@gmail.com',
     author='hmcguire1',
     install_requires=[
         'boto3'
