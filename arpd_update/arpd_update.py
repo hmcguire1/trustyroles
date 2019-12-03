@@ -77,9 +77,6 @@ def _main():
             get_arpd(
                 args['update_role']
             )
-    else:
-        if args['add_external_id'] and args['remove_external_id'] is not None:
-            print(f"Provided method is invalid.")
 
     if args['add_external_id'] is not None:
         add_external_id(
