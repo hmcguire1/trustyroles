@@ -7,7 +7,6 @@ LOGGER = logging.getLogger('IAM-ROLE-TRUST-POLICY')
 logging.basicConfig(level=logging.INFO)
 PARSER = argparse.ArgumentParser()
 
-
 def _main():
     """The _main method can take in a list of ARNs, role to update,
         and method [get, update, remove]."""
@@ -43,9 +42,8 @@ def _main():
 
     PARSER.add_argument(
         '-r', '--remove_external_id',
-        type=str,
         required=False,
-        help='Takes an external id as a string.'
+        help='Method for removing externalId condition. Takes no arguments'
     )
 
     PARSER.add_argument(
@@ -85,7 +83,6 @@ def _main():
         )
     if args['remove_external_id'] is not None:
         remove_external_id(
-            external_id=args['remove_external_id'],
             role_name=args['update_role']
         )
 
@@ -124,7 +121,7 @@ def add_external_id(external_id, role_name):
         RoleName=role_name,
         PolicyDocument=json.dumps(ardp)
     )
-def remove_external_id(external_id, role_name):
+def remove_external_id(role_name):
     """The remove_external_id method takes an external_id and role_name as strings
         to allow the removal of an externalId condition."""
     iam_client = boto3.client('iam')
