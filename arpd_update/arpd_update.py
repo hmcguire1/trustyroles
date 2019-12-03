@@ -68,7 +68,7 @@ def _main():
             args['update_role']
         )
     elif args['method'] == 'get':
-        if args['json'] == True:
+        if args['json']:
             get_arpd(
                 args['update_role'],
                 json_flag=True
@@ -91,6 +91,7 @@ def _main():
             external_id=args['remove_external_id'],
             role_name=args['update_role']
         )
+
 def get_arpd(role_name, json_flag=False):
     """The get_arpd method takes in a role_name as a string
         and provides trusted ARNS and Conditions."""
@@ -98,7 +99,7 @@ def get_arpd(role_name, json_flag=False):
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
 
-    if json_flag == True:
+    if json_flag:
         print(json.dumps(ardp['Statement'][0], indent=4, sort_keys=True))
     else:
         print(f"\nARNS:")
@@ -117,7 +118,7 @@ def add_external_id(external_id, role_name):
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
-    if ardp['Statement'][0]['Condition'] == None:
+    if ardp['Statement'][0]['Condition'] is None:
         ardp['Statement'][0]['Condition'] = {'StringEquals': {"sts:ExternalId": external_id}}
     else:
         ardp['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
