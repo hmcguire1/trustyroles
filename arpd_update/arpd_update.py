@@ -31,7 +31,7 @@ def _main():
         type=str,
         required=False,
         choices=['update', 'remove', 'get'],
-        help='Takes choice of method to update or remove.'
+        help='Takes choice of method to update, get, or remove.'
     )
 
     PARSER.add_argument(
@@ -48,6 +48,13 @@ def _main():
         help='Takes an external id as a string.'
     )
 
+    PARSER.add_argument(
+        '-j', '--json',
+        action='store_true',
+        required=False,
+        help='Add to print json in get method.'
+    )
+
     args = vars(PARSER.parse_args())
 
     if args['method'] == 'update':
@@ -61,9 +68,15 @@ def _main():
             args['update_role']
         )
     elif args['method'] == 'get':
-        get_arpd(
-            args['update_role']
-        )
+        if args['json'] == True:
+            get_arpd(
+                args['update_role'],
+                json_flag=True
+            )
+        else:
+            get_arpd(
+                args['update_role']
+            )
     else:
         if args['add_external_id'] and args['remove_external_id'] is not None:
             print(f"Provided method is invalid.")
@@ -78,22 +91,25 @@ def _main():
             external_id=args['remove_external_id'],
             role_name=args['update_role']
         )
-def get_arpd(role_name):
+def get_arpd(role_name, json_flag=False):
     """The get_arpd method takes in a role_name as a string
         and provides trusted ARNS and Conditions."""
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
 
-    print(f"\nARNS:")
-    if isinstance(ardp['Statement'][0]['Principal']['AWS'], list):
-        for arn in ardp['Statement'][0]['Principal']['AWS']:
-            print(f"  {arn}")
+    if json_flag == True:
+        print(json.dumps(ardp['Statement'][0], indent=4, sort_keys=True))
     else:
-        print(f"  {ardp['Statement'][0]['Principal']['AWS']}")
-    print(f"Conditions:")
-    if ardp['Statement'][0]['Condition']:
-        print(f"  {ardp['Statement'][0]['Condition']}")
+        print(f"\nARNS:")
+        if isinstance(ardp['Statement'][0]['Principal']['AWS'], list):
+            for arn in ardp['Statement'][0]['Principal']['AWS']:
+                print(f"  {arn}")
+        else:
+            print(f"  {ardp['Statement'][0]['Principal']['AWS']}")
+        print(f"Conditions:")
+        if ardp['Statement'][0]['Condition']:
+            print(f"  {ardp['Statement'][0]['Condition']}")
 
 def add_external_id(external_id, role_name):
     """The add_external_id method takes an external_id and role_name as strings
