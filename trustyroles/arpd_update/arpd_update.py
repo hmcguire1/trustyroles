@@ -130,16 +130,15 @@ def remove_external_id(role_name):
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
 
-    if ardp['Statement'][0]['Condition'] is not None:
-        ardp['Statement'][0]['Condition'] = {}
+    ardp['Statement'][0]['Condition'] = {}
 
-        try:
-            iam_client.update_assume_role_policy(
-                RoleName=role_name,
-                PolicyDocument=json.dumps(ardp)
-            )
-        except ClientError as error:
-            print(error)
+    try:
+        iam_client.update_assume_role_policy(
+            RoleName=role_name,
+            PolicyDocument=json.dumps(ardp)
+        )
+    except ClientError as error:
+        print(error)
 
 def update_arn(arn_list, role_name):
     """The update_arn method takes a list of ARNS(arn_list) and a role_name
