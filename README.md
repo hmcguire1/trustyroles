@@ -1,8 +1,7 @@
-# Trustyroles
-### An AWS Roles Toolkit
-*_Assume Role Policy Update Module_*
-### Command Line Tool
-###  arpd_update
+# Trustyroles - _*An AWS Roles Toolkit_*
+### Assume Role Policy Update Module
+#### Command Line Tool
+####  arpd_update
 
 -h 
 -a ARN [ARN]
