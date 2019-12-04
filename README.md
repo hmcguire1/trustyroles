@@ -35,6 +35,7 @@ Add to print json in get method.
 ###### Returns:
 
 {
+
 &nbsp;&nbsp;&nbsp;&nbsp; "Action": "sts:AssumeRole",  
 
 &nbsp;&nbsp;&nbsp;&nbsp; "Condition": {},
