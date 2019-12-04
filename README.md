@@ -78,3 +78,9 @@ arpd_update.get_arpd('test-role', json_flag=True)
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
 
 }
+
+#### Update Policy
+```python
+update_arn(arn_list, role_name)
+```
+The update_arn method takes a list of ARNS(arn_list) and a role_name to add to trust policy of suppplied role.
