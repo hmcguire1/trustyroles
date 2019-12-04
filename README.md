@@ -5,7 +5,7 @@ Trusty Roles is intended to alleviate some of the painpoints I have dealt with i
 The first version of this focuses on easily editing the assume role policy document of a role. 
 ### Assume Role Policy Update Module
 #### Command Line Tool
-####  arpd_update
+#####  arpd_update
 
 -h, --help
 Show this help message and exit
@@ -47,8 +47,8 @@ Add to print json in get method.
 
 }
 
-### Using Python Modules
-####  arpd_update
+#### Using Python Modules
+#####  arpd_update
 
 #### Get Policy
 ```
