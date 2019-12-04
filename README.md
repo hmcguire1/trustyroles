@@ -12,9 +12,9 @@
 -h 
 -a ARN [ARN]
 -u UPDATE_ROLE
-                  -m [update, remove, get]
-                  -e ADD_EXTERNAL_ID
-                  -r REMOVE_EXTERNAL_ID 
+-m [get, update, remove]
+-e ADD_EXTERNAL_ID
+-r REMOVE_EXTERNAL_ID 
               
 -j JSON_FLAG
 
@@ -40,10 +40,15 @@ optional arguments:
 `ardp_update -m get -u 'test-role' --json`
 
 {
-&nbsp;&nbsp;&nbsp; &nbsp;"Action": "sts:AssumeRole",
+&nbsp;&nbsp;&nbsp; &nbsp;"Action": "sts:AssumeRole",  
+
 &nbsp;&nbsp;&nbsp;&nbsp; "Condition": {},
+
 &nbsp;&nbsp;&nbsp;&nbsp; "Effect": "Allow",
+
 &nbsp;&nbsp;&nbsp;&nbsp; "Principal": {
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "AWS": ["arn:aws:iam:::user/test-role"]
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
 }
