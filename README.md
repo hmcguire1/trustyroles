@@ -84,5 +84,5 @@ The update_arn method takes a list of ARNS(arn_list) and a role_name to add to t
 
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.remove_external_id(arn_list, role_name)
+arpd_update.remove_external_id(["arn:aws:iam:::user/test-role"], role_name='hm-test)
 ```
