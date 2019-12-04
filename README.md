@@ -9,7 +9,8 @@
 ###  arpd_update
 <br />
 
--h [-a ARN [ARN ...]]
+-h 
+-a ARN [ARN]
 -u UPDATE_ROLE
                   -m [update, remove, get]
                   -e ADD_EXTERNAL_ID
