@@ -1,5 +1,4 @@
 # Trustyroles
----
 ## An AWS Roles Toolkit
 >### Assume Role Policy Update Module
 ### Command Line Tool
