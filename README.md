@@ -58,7 +58,7 @@ from trustyroles.arpd_update import arpd_update
 arpd_update.get_arpd('test-role', json_flag=True)
 ```
 ###### Returns:
-{
+{  
 
 &nbsp;&nbsp; "Action": "sts:AssumeRole",  
 
