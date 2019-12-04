@@ -84,7 +84,7 @@ The update_arn method takes a list of ARNS(arn_list) and a role_name to add to t
 
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.update_arn(["arn:aws:iam:::user/test-role"], role_name='hm-test)
+arpd_update.update_arn(["arn:aws:iam:::user/test-role2"], role_name='test-role')
 ```
 
 ####  Remove Policy ARNS
@@ -92,7 +92,7 @@ The remove_arn method takes a list of ARNS(arn_list) and a role_name to add to t
 
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.remove_arn(["arn:aws:iam:::user/test-role"], role_name='hm-test)
+arpd_update.remove_arn(["arn:aws:iam:::user/test-role2"], role_name='test-role')
 ```
 
 ####  Add ExternalId
@@ -100,7 +100,7 @@ The add_external_id method takes an external_id and role_name as strings to allo
 
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.add_external_id('<external_id>', role_name='hm-test)
+arpd_update.add_external_id('<external_id>', role_name='test-role')
 ```
 
 ####  Remove ExternalId
@@ -108,5 +108,5 @@ The remove_external_id method takes a role_name as a string to allow the removal
 
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.remove_external_id(role_name='hm-test)
+arpd_update.remove_external_id(role_name='test-role')
 ```
