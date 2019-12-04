@@ -4,14 +4,6 @@ _An AWS Roles Toolkit_
 #### Command Line Tool
 ####  arpd_update
 
--h 
--a ARN [ARN]
--u UPDATE_ROLE
--m [get, update, remove]
--e ADD_EXTERNAL_ID
--r REMOVE_EXTERNAL_ID               
--j JSON_FLAG
-
 -h, --help
 Show this help message and exit
 
