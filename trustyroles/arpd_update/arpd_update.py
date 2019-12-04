@@ -112,10 +112,8 @@ def add_external_id(external_id, role_name):
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
-    if ardp['Statement'][0]['Condition'] is None:
-        ardp['Statement'][0]['Condition'] = {'StringEquals': {"sts:ExternalId": external_id}}
-    else:
-        ardp['Statement'][0]['Condition']['StringEquals']['sts:ExternalId'] = external_id
+    
+    ardp['Statement'][0]['Condition'] = {'StringEquals': {"sts:ExternalId": external_id}}
 
     try:
         iam_client.update_assume_role_policy(
