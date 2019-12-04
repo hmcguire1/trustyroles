@@ -154,12 +154,13 @@ def update_arn(arn_list, role_name):
     for arn in arn_list:
         if arn not in old_principal_list:
             if isinstance(old_principal_list, list):
-                [old_principal_list.append(arn) for arn in arn_list]
+                for old_arn in arn_list:
+                    old_principal_list.append(old_arn)
                 ardp['Statement'][0]['Principal']['AWS'] = old_principal_list
             else:
                 new_principal_list = []
-                for arn in arn_list:
-                    new_principal_list.append(arn)
+                for old_arn in arn_list:
+                    new_principal_list.append(old_arn)
                 new_principal_list.append(old_principal_list)
                 ardp['Statement'][0]['Principal']['AWS'] = new_principal_list
 
