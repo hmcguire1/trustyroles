@@ -83,5 +83,6 @@ arpd_update.get_arpd('test-role', json_flag=True)
 The update_arn method takes a list of ARNS(arn_list) and a role_name to add to trust policy of suppplied role.
 
 ```python
+from trustyroles.arpd_update import arpd_update
 arpd_update.remove_external_id(arn_list, role_name)
 ```
