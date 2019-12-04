@@ -1,5 +1,6 @@
 # Trustyroles
 _An AWS Roles Toolkit_
+
 Trusty Roles is intended to alleviate some of the painpoints I have dealt with in AWS automation leveraging boto3. 
 The first version of this focuses on easily editing the assume role policy document of a role. 
 ### Assume Role Policy Update Module
