@@ -32,6 +32,8 @@ Add to print json in get method.
 #### Get Policy
 `ardp_update -m get -u 'test-role' --json`
 
+###### Returns:
+
 {
 &nbsp;&nbsp;&nbsp;&nbsp; "Action": "sts:AssumeRole",  
 
@@ -55,3 +57,20 @@ Add to print json in get method.
 from trustyroles.arpd_update import arpd_update
 arpd_update.get_arpd('test-role', json_flag=True)
 ```
+###### Returns:
+
+{
+    
+&nbsp;&nbsp;&nbsp;&nbsp; "Action": "sts:AssumeRole",  
+
+&nbsp;&nbsp;&nbsp;&nbsp; "Condition": {},
+
+&nbsp;&nbsp;&nbsp;&nbsp; "Effect": "Allow",
+
+&nbsp;&nbsp;&nbsp;&nbsp; "Principal": {
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "AWS": ["arn:aws:iam:::user/test-role"]
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
+
+}
