@@ -44,6 +44,7 @@ Add to print json in get method.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "AWS": ["arn:aws:iam:::user/test-role"]
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
+
 }
 
 ### Using Python Module
