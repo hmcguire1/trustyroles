@@ -45,3 +45,9 @@ Add to print json in get method.
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
 }
+
+### Using Python Module
+```
+from trustyroles.arpd_update import arpd_update
+arpd_update.get_arpd('test-role')
+```
