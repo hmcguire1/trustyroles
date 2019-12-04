@@ -5,9 +5,7 @@ Trusty Roles is intended to alleviate some of the painpoints I have dealt with i
 The first version of this focuses on easily editing the assume role policy document of a role. 
 
 #### Install
-```python
-pip install trustyroles
-```
+`pip install trustyroles`
 
 ### Assume Role Policy Update Module
 #### Command Line Tool
