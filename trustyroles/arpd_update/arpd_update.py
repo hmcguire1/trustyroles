@@ -114,7 +114,7 @@ def add_external_id(external_id, role_name):
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
     
-    ardp['Statement'][0]['Condition'] = {'StringEquals': {"sts:ExternalId": external_id}}
+    ardp['Statement'][0]['Condition'] = {"StringEquals": {"sts:ExternalId": external_id}}
 
     try:
         iam_client.update_assume_role_policy(
