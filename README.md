@@ -14,7 +14,7 @@ Show this help message and exit
 Add new ARNs to trust policy. Accepts multiple ARNS.
 
 -u, --update_role UPDATE_ROLE
-Role for updatget, ing trust policy. Takes an role friendly name as string.
+Role for updating trust policy. Takes an role friendly name as string.
 
 -m,  --method [get, update, remove]
 Takes choice of method to update, get, or remove.
