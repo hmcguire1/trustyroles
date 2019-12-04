@@ -42,6 +42,7 @@ def _main():
 
     PARSER.add_argument(
         '-r', '--remove_external_id',
+        action='store_true',
         required=False,
         help='Method for removing externalId condition. Takes no arguments'
     )
