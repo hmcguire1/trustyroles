@@ -4,7 +4,7 @@ import argparse
 import boto3
 
 LOGGER = logging.getLogger('IAM-ROLE-TRUST-POLICY')
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 PARSER = argparse.ArgumentParser()
 
 def _main():
@@ -12,7 +12,6 @@ def _main():
         and method [get, update, remove]."""
     PARSER.add_argument(
         '-a', '--arn',
-        type=str,
         nargs='+',
         required=False,
         help='Add new ARNs to trust policy. Takes a comma-seperated list of ARNS.'
@@ -47,7 +46,7 @@ def _main():
     )
 
     PARSER.add_argument(
-        '-j', '--json',
+        '-j', '--json_flag',
         action='store_true',
         required=False,
         help='Add to print json in get method.'
@@ -150,8 +149,8 @@ def update_arn(arn_list, role_name):
                 ardp['Statement'][0]['Principal']['AWS'] = old_principal_list
             else:
                 new_principal_list = []
-                for arn in arn_list:
-                    new_principal_list.append(arn)
+                for arn_item in arn_list:
+                    new_principal_list.append(arn_item)
                 new_principal_list.append(old_principal_list)
                 ardp['Statement'][0]['Principal']['AWS'] = new_principal_list
 
