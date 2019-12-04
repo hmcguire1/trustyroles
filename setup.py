@@ -5,7 +5,7 @@ with open("Pypi-README.md", "r") as fh:
 
 setuptools.setup(
     name='trustyroles',
-    version='0.0.5',
+    version='0.2.0',
     description='AWS roles toolkit',
     long_description=long_description,
     long_description_content_type="text/markdown",
