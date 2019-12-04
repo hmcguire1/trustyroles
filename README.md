@@ -108,5 +108,5 @@ The remove_external_id method takes a role_name as a string to allow the removal
 
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.remove_external_id(ole_name='hm-test)
+arpd_update.remove_external_id(role_name='hm-test)
 ```
