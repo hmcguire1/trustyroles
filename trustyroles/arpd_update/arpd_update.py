@@ -115,7 +115,7 @@ def add_external_id(external_id, role_name):
     if ardp['Statement'][0]['Condition'] is None:
         ardp['Statement'][0]['Condition'] = {'StringEquals': {"sts:ExternalId": external_id}}
     else:
-        ardp['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
+        ardp['Statement'][0]['Condition']['StringEquals']['sts:ExternalId'] = external_id
 
     try:
         iam_client.update_assume_role_policy(
