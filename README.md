@@ -22,7 +22,7 @@ Takes choice of method to update, get, or remove.
 -e, --add_external_id ADD_EXTERNAL_ID
 Takes an external id as a string.
 
--r, --remove_external_id REMOVE_EXTERNAL_ID
+-r, --remove_external_id
 Method for removing externalId condition. Takes no arguments
 
 -j, --json
