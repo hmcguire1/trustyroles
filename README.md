@@ -54,7 +54,7 @@ Add to print json in get method.
 #####  arpd_update
 
 #### Get Policy
-```
+```python
 from trustyroles.arpd_update import arpd_update
 arpd_update.get_arpd('test-role', json_flag=True)
 ```
