@@ -1,17 +1,11 @@
 # Trustyroles
----
-## An AWS Roles Toolkit
->### Assume Role Policy Update Module
-### Command Line Tool
-###  arpd_update
+_An AWS Roles Toolkit_
 
--h 
--a ARN [ARN]
--u UPDATE_ROLE
--m [get, update, remove]
--e ADD_EXTERNAL_ID
--r REMOVE_EXTERNAL_ID               
--j JSON_FLAG
+Trusty Roles is intended to alleviate some of the painpoints I have dealt with in AWS automation leveraging boto3. 
+The first version of this focuses on easily editing the assume role policy document of a role. 
+### Assume Role Policy Update Module
+#### Command Line Tool
+####  arpd_update
 
 -h, --help
 Show this help message and exit
