@@ -82,7 +82,7 @@ def _main():
             external_id=args['add_external_id'],
             role_name=args['update_role']
         )
-    if args['remove_external_id'] is not None:
+    if args['remove_external_id']:
         remove_external_id(
             role_name=args['update_role']
         )
@@ -114,7 +114,8 @@ def add_external_id(external_id, role_name):
     role = iam_client.get_role(RoleName=role_name)
     ardp = role['Role']['AssumeRolePolicyDocument']
     
-    ardp['Statement'][0]['Condition'] = {"StringEquals": {"sts:ExternalId": external_id}}
+    ardp['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
+    print(ardp)
 
     try:
         iam_client.update_assume_role_policy(
