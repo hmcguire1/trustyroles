@@ -115,13 +115,14 @@ def add_external_id(external_id, role_name):
     ardp = role['Role']['AssumeRolePolicyDocument']
     
     ardp['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
-    print(ardp)
 
     try:
         iam_client.update_assume_role_policy(
             RoleName=role_name,
             PolicyDocument=json.dumps(ardp)
         )
+
+        print(json.dumps(ardp['Statement'][0], indent=4, sort_keys=True))
     except ClientError as error:
         print(error)
 
@@ -139,6 +140,8 @@ def remove_external_id(role_name):
             RoleName=role_name,
             PolicyDocument=json.dumps(ardp)
         )
+
+        print(json.dumps(ardp['Statement'][0], indent=4, sort_keys=True))
     except ClientError as error:
         print(error)
 
@@ -168,6 +171,7 @@ def update_arn(arn_list, role_name):
             RoleName=role_name,
             PolicyDocument=json.dumps(ardp)
         )
+        print(json.dumps(ardp['Statement'][0], indent=4, sort_keys=True))
     except ClientError as error:
         print(error)
 
@@ -193,6 +197,7 @@ def remove_arn(arn_list, role_name):
             RoleName=role_name,
             PolicyDocument=json.dumps(ardp)
         )
+        print(json.dumps(ardp['Statement'][0], indent=4, sort_keys=True))
     except ClientError as error:
         print(error)
 
