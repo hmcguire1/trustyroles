@@ -1,4 +1,7 @@
 # Trustyroles
+[![PyPI version](https://badge.fury.io/py/trustyroles.svg)](https://badge.fury.io/py/trustyroles)
+[![PyPI license](https://img.shields.io/pypi/l/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/)
+
 _An AWS Roles Toolkit_
 
 Trusty Roles is intended to alleviate some of the painpoints I have dealt with in AWS automation leveraging boto3. 
@@ -10,50 +13,43 @@ The first version of this focuses on easily editing the assume role policy docum
 ### Assume Role Policy Update Module
 #### Command Line Tool
 #####  arpd_update
+```
+usage: arpd_update [-h] [-a ARN [ARN ...]] -u UPDATE_ROLE
+                   [-m {get,update,remove}] [-e ADD_EXTERNAL_ID] [-r] [-j]
 
--h, --help
-Show this help message and exit
-
--a, --arn ARN[]
-Add new ARNs to trust policy. Accepts multiple ARNS.
-
--u, --update_role UPDATE_ROLE
-Role for updating trust policy. Takes an role friendly name as string.
-
--m,  --method [get, update, remove]
-Takes choice of method to update, get, or remove.
-
--e, --add_external_id ADD_EXTERNAL_ID
-Takes an external id as a string.
-
--r, --remove_external_id
-Method for removing externalId condition. Takes no arguments
-
--j, --json
-Add to print json in get method.
+optional arguments:
+  -h, --help            show this help message and exit
+  -a ARN [ARN ...], --arn ARN [ARN ...]
+                        Add new ARNs to trust policy. Takes a comma-seperated
+                        list of ARNS.
+  -u UPDATE_ROLE, --update_role UPDATE_ROLE
+                        Role for updating trust policy. Takes an role friendly
+                        name as string.
+  -m {get,update,remove}, --method {get,update,remove}
+                        Takes choice of method to get, update, or remove.
+  -e ADD_EXTERNAL_ID, --add_external_id ADD_EXTERNAL_ID
+                        Takes an externalId as a string.
+  -r, --remove_external_id
+                        Method for removing externalId condition. Takes no
+                        arguments
+  -j, --json            Add to print json in get method.
+```
   
 #### Example usage:
 #### Get Policy
 `ardp_update -m get -u 'test-role' --json`
 
 ###### Returns:
-
+```
 {
-
-&nbsp;&nbsp;&nbsp;&nbsp; "Action": "sts:AssumeRole",  
-
-&nbsp;&nbsp;&nbsp;&nbsp; "Condition": {},
-
-&nbsp;&nbsp;&nbsp;&nbsp; "Effect": "Allow",
-
-&nbsp;&nbsp;&nbsp;&nbsp; "Principal": {
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "AWS": ["arn:aws:iam:::user/test-role"]
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
-
+ "Action": "sts:AssumeRole",  
+ "Condition": {},
+ "Effect": "Allow",
+ "Principal": {
+  "AWS": ["arn:aws:iam:::user/test-role"]
+ }
 }
-
+```
 #### Using Python Modules
 #####  arpd_update
 
@@ -63,22 +59,16 @@ from trustyroles.arpd_update import arpd_update
 arpd_update.get_arpd('test-role', json_flag=True)
 ```
 ###### Returns:
+```
 {  
-
-&nbsp;&nbsp; "Action": "sts:AssumeRole",  
-
-&nbsp;&nbsp;&nbsp;&nbsp; "Condition": {},
-
-&nbsp;&nbsp;&nbsp;&nbsp; "Effect": "Allow",
-
-&nbsp;&nbsp;&nbsp;&nbsp; "Principal": {
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; "AWS": ["arn:aws:iam:::user/test-role"]
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }
-
+ "Action": "sts:AssumeRole",  
+ "Condition": {},
+ "Effect": "Allow",
+ "Principal": {
+  "AWS": ["arn:aws:iam:::user/test-role"]
+ }
 }
-
+```
 #### Update Policy ARNS
 The update_arn method takes a list of ARNS(arn_list) and a role_name to add to trust policy of suppplied role.
 
