@@ -37,7 +37,7 @@ optional arguments:
   
 #### Example usage:
 #### Get Policy
-`ardp_update -m get -u 'test-role' --json`
+`arpd_update -m get -u 'test-role' --json`
 
 ###### Returns:
 ```
