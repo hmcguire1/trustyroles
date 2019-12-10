@@ -118,6 +118,7 @@ Remove a Sid from a trust policy. Takes no arguments.
 ```python
 from trustyroles.arpd_update import arpd_update
 arpd_update.remove_sid(role_name='test-role')
+```
 
 ####  Retain Policy
 Retain policy while making changes. Saves policy  as JSON in current directory as policy.bk
