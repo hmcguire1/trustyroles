@@ -14,8 +14,9 @@ The first version of this focuses on easily editing the assume role policy docum
 #### Command Line Tool
 #####  arpd_update
 ```
-usage: arpd_update [-h] [-a ARN [ARN ...]] -u UPDATE_ROLE
-                   [-m {get,update,remove}] [-e ADD_EXTERNAL_ID] [-r] [-j]
+usage: arpd_update.py [-h] [-a ARN [ARN ...]] -u UPDATE_ROLE
+                      [-m {get,update,remove}] [-e ADD_EXTERNAL_ID] [-r] [-j]
+                      [-p] [-s SID]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -33,6 +34,11 @@ optional arguments:
                         Method for removing externalId condition. Takes no
                         arguments
   -j, --json            Add to print json in get method.
+  --retain_policy       Retain policy content when adding or deleting ARN in a
+                        policy. Saves policy JSON in current directory as
+                        policy.bk
+  --add_sid ADD_SID     Add a Sid to trust policy. Takes a string.
+  --remove_sid          Remove a Sid from a trust policy. Takes no arguments.
 ```
   
 #### Example usage:
@@ -99,4 +105,23 @@ The remove_external_id method takes a role_name as a string to allow the removal
 ```python
 from trustyroles.arpd_update import arpd_update
 arpd_update.remove_external_id(role_name='test-role')
+```
+#### Add Sid
+Add a Sid to trust policy. Takes a string.
+```python
+from trustyroles.arpd_update import arpd_update
+arpd_update.add_sid(role_name='test-role', sid='testRoleTempId')
+```
+
+#### Remove Sid
+Remove a Sid from a trust policy. Takes no arguments.
+```python
+from trustyroles.arpd_update import arpd_update
+arpd_update.remove_sid(role_name='test-role')
+
+####  Retain Policy
+Retain policy while making changes. Saves policy  as JSON in current directory as policy.bk
+```python
+from trustyroles.arpd_update import arpd_update
+arpd_update.retain_policy(role_name='test-role')
 ```

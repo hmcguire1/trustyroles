@@ -43,8 +43,6 @@ def _main():
 
     PARSER.add_argument(
         '-r', '--remove_external_id',
-        action='store_true',
-        required=False,
         help='Method for removing externalId condition. Takes no arguments'
     )
 
@@ -56,17 +54,24 @@ def _main():
     )
 
     PARSER.add_argument(
-        '-p', '--retain_policy',
+        '--retain_policy',
         action='store_true',
         required=False,
-        help='''Retain content when adding or deleting ARN in a policy.
+        help='''Retain policy content when adding or deleting ARN in a policy.
         Saves policy JSON in current directory as policy.bk'''
     )
 
     PARSER.add_argument(
-        '-s', '--sid',
+        '--add_sid',
         required=False,
         help='Add a Sid to trust policy. Takes a string.'
+    )
+
+    PARSER.add_argument(
+        '--remove_sid',
+        action='store_true',
+        required=False,
+        help='Remove a Sid from a trust policy. Takes no arguments.'
     )
 
     args = vars(PARSER.parse_args())
@@ -104,8 +109,11 @@ def _main():
     if args['retain_policy']:
         retain_policy(role_name=args['update_role'])
 
-    if args['sid']:
-        add_sid(role_name=args['update_role'], sid=args['sid'])
+    if args['add_sid']:
+        add_sid(role_name=args['update_role'], sid=args['add_sid'])
+
+    if args['remove_sid']:
+        remove_sid(role_name=args['update_role'])
 
 
 def get_arpd(role_name, json_flag=False):
@@ -250,6 +258,23 @@ def add_sid(role_name, sid):
     except ClientError as error:
         print(error)
 
+def remove_sid(role_name):
+    iam_client = boto3.client('iam')
+    role = iam_client.get_role(RoleName=role_name)
+    arpd = role['Role']['AssumeRolePolicyDocument']
+
+    if arpd['Statement'][0]['Sid'] is not None:
+        arpd['Statement'][0].pop('Sid')
+        print(arpd['Statement'][0])
+
+        try:
+            iam_client.update_assume_role_policy(
+                RoleName=role_name,
+                PolicyDocument=json.dumps(arpd)
+            )
+            print(json.dumps(arpd['Statement'][0], indent=4))
+        except ClientError as error:
+            print(error)
 
 if __name__ == "__main__":
     _main()

@@ -1,0 +1,1 @@
+{"Version": "2012-10-17", "Statement": [{"Sid": "tempId", "Effect": "Allow", "Principal": {"AWS": ["arn:aws:iam::713647264916:root", "arn:aws:iam::713647264916:user/hm_test", "arn:aws:iam::713647264916:user/hm_test2"]}, "Action": "sts:AssumeRole", "Condition": {}}]}
