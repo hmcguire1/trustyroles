@@ -121,7 +121,7 @@ arpd_update.remove_sid(role_name='test-role')
 ```
 
 ####  Retain Policy
-Retain policy while making changes. Saves policy  as JSON in current directory as policy.bk
+Retain policy while making changes. Saves policy as JSON in current directory as policy.bk
 ```python
 from trustyroles.arpd_update import arpd_update
 arpd_update.retain_policy(role_name='test-role')

@@ -2,8 +2,10 @@ import json
 import logging
 import argparse
 import os
+import typing
 import boto3
 from botocore.exceptions import ClientError
+from mypy_boto3 import 
 
 LOGGER = logging.getLogger('IAM-ROLE-TRUST-POLICY')
 logging.basicConfig(level=logging.WARNING)
@@ -116,9 +118,14 @@ def _main():
         remove_sid(role_name=args['update_role'])
 
 
-def get_arpd(role_name: str, json_flag: bool = False) -> None:
+def get_arpd(role_name: str, json_flag: bool = False, client: class) -> None:
     """The get_arpd method takes in a role_name as a string
     and provides trusted ARNS and Conditions."""
+    if client:
+        iam_client = client.client('iam')
+    else:
+        iam_client = boto3.client('iam')
+
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
@@ -136,9 +143,14 @@ def get_arpd(role_name: str, json_flag: bool = False) -> None:
         if arpd['Statement'][0]['Condition']:
             print(f"  {arpd['Statement'][0]['Condition']}")
 
-def add_external_id(external_id: str, role_name: str) -> None:
+def add_external_id(external_id: str, role_name: str, client: class) -> None:
     """The add_external_id method takes an external_id and role_name as strings
         to allow the addition of an externalId condition."""
+    if client:
+        iam_client = client.client('iam')
+    else:
+        iam_client = boto3.client('iam')
+
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
@@ -155,9 +167,14 @@ def add_external_id(external_id: str, role_name: str) -> None:
     except ClientError as error:
         print(error)
 
-def remove_external_id(role_name: str) -> None:
+def remove_external_id(role_name: str, client: class) -> None:
     """The remove_external_id method takes a role_name as a string
         to allow the removal of an externalId condition."""
+    if client:
+        iam_client = client.client('iam')
+    else:
+        iam_client = boto3.client('iam')
+
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
@@ -174,9 +191,14 @@ def remove_external_id(role_name: str) -> None:
     except ClientError as error:
         print(error)
 
-def update_arn(arn_list: str, role_name: str) -> None:
+def update_arn(arn_list: str, role_name: str, client: class) -> None:
     """The update_arn method takes a list of ARNS(arn_list) and a role_name
         to add to trust policy of suppplied role."""
+    if client:
+        iam_client = client.client('iam')
+    else:
+        iam_client = boto3.client('iam')
+
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
@@ -204,9 +226,14 @@ def update_arn(arn_list: str, role_name: str) -> None:
     except ClientError as error:
         print(error)
 
-def remove_arn(arn_list: str, role_name: str) -> None:
+def remove_arn(arn_list: str, role_name: str, client: class) -> None:
     """The remove_arn method takes in a string or list of ARNs and a role_name
         to remove ARNS from trust policy of supplied role."""
+    if client:
+        iam_client = client.client('iam')
+    else:
+        iam_client = boto3.client('iam')
+
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
@@ -230,11 +257,16 @@ def remove_arn(arn_list: str, role_name: str) -> None:
     except ClientError as error:
         print(error)
 
-def retain_policy(role_name: str) -> None:
+def retain_policy(role_name: str, client: class) -> None:
     """
     The retain_policy method creates a backup of previous
     policy in current directory as policy.bk
     """
+    if client:
+        iam_client = client.client('iam')
+    else:
+        iam_client = boto3.client('iam')
+
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
@@ -242,7 +274,12 @@ def retain_policy(role_name: str) -> None:
     with open(os.getcwd() + '/policy.bk', "w") as file:
         json.dump(arpd, file)
 
-def add_sid(role_name: str, sid: str) -> None:
+def add_sid(role_name: str, sid: str, client: class) -> None:
+    if client:
+        iam_client = client.client('iam')
+    else:
+        iam_client = boto3.client('iam')
+
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
@@ -258,8 +295,12 @@ def add_sid(role_name: str, sid: str) -> None:
     except ClientError as error:
         print(error)
 
-def remove_sid(role_name: str) -> None:
-    iam_client = boto3.client('iam')
+def remove_sid(role_name: str, client: class) -> None:
+    if client:
+        iam_client = client.client('iam')
+    else:
+        iam_client = boto3.client('iam')
+
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
 
