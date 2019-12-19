@@ -5,7 +5,7 @@ import os
 import typing
 import boto3
 from botocore.exceptions import ClientError
-from mypy_boto3 import 
+
 
 LOGGER = logging.getLogger('IAM-ROLE-TRUST-POLICY')
 logging.basicConfig(level=logging.WARNING)
