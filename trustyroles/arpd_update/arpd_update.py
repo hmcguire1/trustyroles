@@ -1,11 +1,10 @@
+import os
 import json
 import logging
 import argparse
-import os
-import typing
+from typing import List
 import boto3
 from botocore.exceptions import ClientError
-
 
 LOGGER = logging.getLogger('IAM-ROLE-TRUST-POLICY')
 logging.basicConfig(level=logging.WARNING)
@@ -191,7 +190,7 @@ def remove_external_id(role_name: str, client: object = None) -> None:
     except ClientError as error:
         print(error)
 
-def update_arn(arn_list: str, role_name: str, client: object = None) -> None:
+def update_arn(arn_list: List, role_name: str, client: object = None) -> None:
     """The update_arn method takes a list of ARNS(arn_list) and a role_name
         to add to trust policy of suppplied role."""
     if client:
@@ -226,7 +225,7 @@ def update_arn(arn_list: str, role_name: str, client: object = None) -> None:
     except ClientError as error:
         print(error)
 
-def remove_arn(arn_list: str, role_name: str, client: object = None) -> None:
+def remove_arn(arn_list: List, role_name: str, client: object = None) -> None:
     """The remove_arn method takes in a string or list of ARNs and a role_name
         to remove ARNS from trust policy of supplied role."""
     if client:
