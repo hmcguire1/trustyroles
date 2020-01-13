@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import argparse
-from typing import List
+from typing import List, Dict
 import boto3
 from botocore.exceptions import ClientError
 
@@ -88,16 +88,22 @@ def _main():
             args['update_role']
         )
     elif args['method'] == 'get':
+        arpd = get_arpd(
+            args['update_role'],
+        )
         if args['json']:
-            get_arpd(
-                args['update_role'],
-                json_flag=True
-            )
+            print(json.dumps(arpd['Statement'][0], indent=4))
         else:
-            get_arpd(
-                args['update_role']
-            )
-
+            print(f"\nARNS:")
+            if isinstance(arpd['Statement'][0]['Principal']['AWS'], list):
+                for arn in arpd['Statement'][0]['Principal']['AWS']:
+                    print(f"  {arn}")
+            else:
+                print(f"  {arpd['Statement'][0]['Principal']['AWS']}")
+            print(f"Conditions:")
+            if arpd['Statement'][0]['Condition']:
+                print(f"  {arpd['Statement'][0]['Condition']}")        
+        
     if args['add_external_id'] is not None:
         add_external_id(
             external_id=args['add_external_id'],
@@ -117,7 +123,7 @@ def _main():
         remove_sid(role_name=args['update_role'])
 
 
-def get_arpd(role_name: str, json_flag: bool = False, client: object = None) -> None:
+def get_arpd(role_name: str, client: object = None) -> Dict:
     """The get_arpd method takes in a role_name as a string
     and provides trusted ARNS and Conditions."""
     if client:
@@ -127,20 +133,7 @@ def get_arpd(role_name: str, json_flag: bool = False, client: object = None) -> 
 
     iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
-    arpd = role['Role']['AssumeRolePolicyDocument']
-
-    if json_flag:
-        print(json.dumps(arpd['Statement'][0], indent=4))
-    else:
-        print(f"\nARNS:")
-        if isinstance(arpd['Statement'][0]['Principal']['AWS'], list):
-            for arn in arpd['Statement'][0]['Principal']['AWS']:
-                print(f"  {arn}")
-        else:
-            print(f"  {arpd['Statement'][0]['Principal']['AWS']}")
-        print(f"Conditions:")
-        if arpd['Statement'][0]['Condition']:
-            print(f"  {arpd['Statement'][0]['Condition']}")
+    return role['Role']['AssumeRolePolicyDocument']
 
 def add_external_id(external_id: str, role_name: str, client: object = None) -> None:
     """The add_external_id method takes an external_id and role_name as strings
