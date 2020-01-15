@@ -110,7 +110,7 @@ arpd_update.remove_external_id(role_name='test-role')
 Add a Sid to trust policy. Takes a string.
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.add_sid(role_name='test-role', sid='testRoleTempId')
+arpd_update.add_sid(role_name='test-role', sid='testRoleId')
 ```
 
 #### Remove Sid
