@@ -158,7 +158,6 @@ def get_arpd(role_name: str, session=None) -> Dict:
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
 
     return role['Role']['AssumeRolePolicyDocument']
@@ -172,7 +171,6 @@ def add_external_id(external_id: str, role_name: str, session=None) -> Dict:
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
 
@@ -198,7 +196,6 @@ def remove_external_id(role_name: str, session=None) -> Dict:
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
 
@@ -224,7 +221,6 @@ def update_arn(arn_list: List, role_name: str, session=None) -> Dict:
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
     old_principal_list = arpd['Statement'][0]['Principal']['AWS']
@@ -265,7 +261,6 @@ def remove_arn(arn_list: List, role_name: str, session=None) -> Dict:
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
     old_principal_list = arpd['Statement'][0]['Principal']['AWS']
@@ -301,7 +296,6 @@ def retain_policy(role_name: str, session=None) -> Dict:
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
 
@@ -321,7 +315,6 @@ def add_sid(role_name: str, sid: str, session=None) -> Dict:
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
 
