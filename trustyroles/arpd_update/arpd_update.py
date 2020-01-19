@@ -161,7 +161,7 @@ def get_arpd(role_name: str, session=None) -> Dict:
 
     role = iam_client.get_role(RoleName=role_name)
 
-    if __name__ != '__main__'
+    if __name__ != '__main__':
         return role['Role']['AssumeRolePolicyDocument']
 
 def add_external_id(external_id: str, role_name: str, session=None, retain_policy=False) -> Dict:
