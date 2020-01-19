@@ -299,7 +299,7 @@ def remove_arn(arn_list: List, role_name: str, session=None, retain_policy=False
     except ClientError as ex:
         raise ex
 
-def retain_policy(role_name: str, policy: Dict) -> None:
+def retain_policy(policy: Dict) -> None:
     """
     The retain_policy method creates a backup of previous
     policy in current directory as policy.bk
