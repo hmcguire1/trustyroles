@@ -87,6 +87,8 @@ def _main():
     
     if args['backup_policy'] is None:
         backup_policy = False
+    else:
+        backup_policy = True
 
 
     if args['method'] == 'update':
