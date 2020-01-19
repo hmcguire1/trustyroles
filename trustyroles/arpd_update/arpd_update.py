@@ -49,6 +49,8 @@ def _main():
 
     PARSER.add_argument(
         '-r', '--remove_external_id',
+        action='store_true',
+        required=False,
         help='Method for removing externalId condition. Takes no arguments'
     )
 
@@ -61,6 +63,7 @@ def _main():
 
     PARSER.add_argument(
         '--add_sid',
+        type=str,
         required=False,
         help='Add a Sid to trust policy. Takes a string.'
     )
@@ -73,19 +76,23 @@ def _main():
     )
 
     PARSER.add_argument(
-        '--retain_policy',
+        '--backup_policy',
         action='store_true',
         required=False,
-        help='''Retain policy content when adding or deleting ARN in a policy.
-        Saves policy JSON in current directory as policy.bk'''
+        help='''The retain_policy method creates a backup of previous
+    policy in current directory as <ISO-time>.policy.bk'''
     )
 
     args = vars(PARSER.parse_args())
-
+    
+    if args['backup_policy']:
+        BACKUP_POLICY = True
+    
     if args['method'] == 'update':
         arpd = update_arn(
             args['arn'],
-            args['update_role']
+            args['update_role'],
+            backup_policy=BACKUP_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -93,7 +100,8 @@ def _main():
     elif args['method'] == 'remove':
         arpd = remove_arn(
             args['arn'],
-            args['update_role']
+            args['update_role'],
+            backup_policy=BACKUP_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -123,14 +131,16 @@ def _main():
     if args['add_external_id'] is not None:
         arpd = add_external_id(
             external_id=args['add_external_id'],
-            role_name=args['update_role']
+            role_name=args['update_role'],
+            backup_policy=BACKUP_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
 
     if args['remove_external_id']:
         arpd = remove_external_id(
-            role_name=args['update_role']
+            role_name=args['update_role'],
+            backup_policy=BACKUP_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -138,14 +148,16 @@ def _main():
     if args['add_sid']:
         arpd = add_sid(
             role_name=args['update_role'], 
-            sid=args['add_sid']
+            sid=args['add_sid'],
+            backup_policy=BACKUP_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
 
     if args['remove_sid']:
         arpd = remove_sid(
-            role_name=args['update_role']
+            role_name=args['update_role'],
+            backup_policy=BACKUP_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -161,10 +173,9 @@ def get_arpd(role_name: str, session=None) -> Dict:
 
     role = iam_client.get_role(RoleName=role_name)
 
-    if __name__ != '__main__':
-        return role['Role']['AssumeRolePolicyDocument']
+    return role['Role']['AssumeRolePolicyDocument']
 
-def add_external_id(external_id: str, role_name: str, session=None, retain_policy=False) -> Dict:
+def add_external_id(external_id: str, role_name: str, session=None, backup_policy=False) -> Dict:
     """The add_external_id method takes an external_id and role_name as strings
         to allow the addition of an externalId condition."""
 
@@ -178,7 +189,7 @@ def add_external_id(external_id: str, role_name: str, session=None, retain_polic
 
     arpd['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
     
-    if retain_policy:
+    if backup_policy:
         retain_policy(policy=arpd)
     
     try:
@@ -192,7 +203,7 @@ def add_external_id(external_id: str, role_name: str, session=None, retain_polic
     except ClientError as ex:
         raise ex
 
-def remove_external_id(role_name: str, session=None, retain_policy=False) -> Dict:
+def remove_external_id(role_name: str, session=None, backup_policy=False) -> Dict:
     """The remove_external_id method takes a role_name as a string
         to allow the removal of an externalId condition."""
 
@@ -206,7 +217,7 @@ def remove_external_id(role_name: str, session=None, retain_policy=False) -> Dic
 
     arpd['Statement'][0]['Condition'] = {}
     
-    if retain_policy:
+    if backup_policy:
         retain_policy(policy=arpd)
 
     try:
@@ -220,7 +231,7 @@ def remove_external_id(role_name: str, session=None, retain_policy=False) -> Dic
     except ClientError as ex:
         raise ex
 
-def update_arn(arn_list: List, role_name: str, session=None, retain_policy=False) -> Dict:
+def update_arn(arn_list: List, role_name: str, session=None, backup_policy=False) -> Dict:
     """The update_arn method takes a list of ARNS(arn_list) and a role_name
         to add to trust policy of suppplied role."""
 
@@ -249,7 +260,7 @@ def update_arn(arn_list: List, role_name: str, session=None, retain_policy=False
                 new_principal_list.append(old_principal_list)
                 arpd['Statement'][0]['Principal']['AWS'] = new_principal_list
     
-    if retain_policy:
+    if backup_policy:
         retain_policy(policy=arpd)
 
     try:
@@ -263,7 +274,7 @@ def update_arn(arn_list: List, role_name: str, session=None, retain_policy=False
     except ClientError as ex:
         raise ex
 
-def remove_arn(arn_list: List, role_name: str, session=None, retain_policy=False) -> Dict:
+def remove_arn(arn_list: List, role_name: str, session=None, backup_policy=False) -> Dict:
     """The remove_arn method takes in a string or list of ARNs and a role_name
         to remove ARNS from trust policy of supplied role."""
 
@@ -285,7 +296,7 @@ def remove_arn(arn_list: List, role_name: str, session=None, retain_policy=False
 
     arpd['Statement'][0]['Principal']['AWS'] = old_principal_list
 
-    if retain_policy:
+    if backup_policy:
         retain_policy(policy=arpd)
         
     try:
@@ -308,7 +319,7 @@ def retain_policy(policy: Dict) -> None:
     with open(os.getcwd() + '/' + datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ") + '.policy.bk', "w") as file:
         json.dump(policy, file, ensure_ascii=False, indent=4)
 
-def add_sid(role_name: str, sid: str, session=None, retain_policy=False) -> Dict:
+def add_sid(role_name: str, sid: str, session=None, backup_policy=False) -> Dict:
     """
     The add_sid method adds a statement ID to
     the assume role policy document
@@ -324,7 +335,7 @@ def add_sid(role_name: str, sid: str, session=None, retain_policy=False) -> Dict
 
     arpd['Statement'][0]['Sid'] = sid
     
-    if retain_policy:
+    if backup_policy:
         retain_policy(policy=arpd)
 
     try:
@@ -338,7 +349,7 @@ def add_sid(role_name: str, sid: str, session=None, retain_policy=False) -> Dict
     except ClientError as ex:
         raise ex
 
-def remove_sid(role_name: str, session=None, retain_policy=False) -> Dict:
+def remove_sid(role_name: str, session=None, backup_policy=False) -> Dict:
     """
     The remove_sid method removes the statement ID
     from the assume role policy document
@@ -355,7 +366,7 @@ def remove_sid(role_name: str, session=None, retain_policy=False) -> Dict:
     if arpd['Statement'][0]['Sid'] is not None:
         arpd['Statement'][0].pop('Sid')
         
-        if retain_policy:
+        if backup_policy:
             retain_policy(policy=arpd)
 
         try:
