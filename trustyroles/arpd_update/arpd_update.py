@@ -81,12 +81,15 @@ def _main():
     )
 
     args = vars(PARSER.parse_args())
+    
+    if args['retain_policy']:
+        RETAIN_POLICY = True
 
     if args['method'] == 'update':
         arpd = update_arn(
             args['arn'],
             args['update_role'],
-            retain_policy=False
+            retain_policy=RETAIN_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -95,7 +98,7 @@ def _main():
         arpd = remove_arn(
             args['arn'],
             args['update_role'],
-            retain_policy=False
+            retain_policy=RETAIN_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -126,7 +129,7 @@ def _main():
         arpd = add_external_id(
             external_id=args['add_external_id'],
             role_name=args['update_role'],
-            retain_policy=False
+            retain_policy=RETAIN_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -134,7 +137,7 @@ def _main():
     if args['remove_external_id']:
         arpd = remove_external_id(
             role_name=args['update_role'],
-            retain_policy=False
+            retain_policy=RETAIN_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -143,7 +146,7 @@ def _main():
         arpd = add_sid(
             role_name=args['update_role'], 
             sid=args['add_sid'],
-            retain_policy=False
+            retain_policy=RETAIN_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -151,15 +154,10 @@ def _main():
     if args['remove_sid']:
         arpd = remove_sid(
             role_name=args['update_role'],
-            retain_policy=False
+            retain_policy=RETAIN_POLICY
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
-
-    if args['retain_policy']:
-        role_name = args['update_role']
-        arpd = get_arpd(role_name=role_name)
-        retain_policy(policy=arpd)
 
 def get_arpd(role_name: str, session=None) -> Dict:
     """The get_arpd method takes in a role_name as a string
