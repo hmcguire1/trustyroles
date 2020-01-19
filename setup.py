@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='trustyroles',
-    version='1.4.0',
+    version='1.5.2',
     description='AWS roles toolkit',
     long_description=long_description,
     long_description_content_type="text/markdown",

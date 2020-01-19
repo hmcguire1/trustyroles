@@ -34,9 +34,8 @@ optional arguments:
                         Method for removing externalId condition. Takes no
                         arguments
   -j, --json            Add to print json in get method.
-  --retain_policy       Retain policy content when adding or deleting ARN in a
-                        policy. Saves policy JSON in current directory as
-                        policy.bk
+  --backup_policy       Creates a backup of previous policy in current directory
+                        as <ISO-time>.policy.bk
   --add_sid ADD_SID     Add a Sid to trust policy. Takes a string.
   --remove_sid          Remove a Sid from a trust policy. Takes no arguments.
 ```
@@ -62,7 +61,7 @@ optional arguments:
 #### Get Policy
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.get_arpd('test-role', json_flag=True)
+arpd_update.get_arpd(role_name='test-role')
 ```
 ###### Returns:
 ```
@@ -80,7 +79,7 @@ The update_arn method takes a list of ARNS(arn_list) and a role_name to add to t
 
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.update_arn(["arn:aws:iam:::user/test-role2"], role_name='test-role')
+arpd_update.update_arn(arn_list=["arn:aws:iam:::user/test-role2"], role_name='test-role')
 ```
 
 ####  Remove Policy ARNS
@@ -88,7 +87,7 @@ The remove_arn method takes a list of ARNS(arn_list) and a role_name to add to t
 
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.remove_arn(["arn:aws:iam:::user/test-role2"], role_name='test-role')
+arpd_update.remove_arn(arn_list=["arn:aws:iam:::user/test-role2"], role_name='test-role')
 ```
 
 ####  Add ExternalId
@@ -96,7 +95,7 @@ The add_external_id method takes an external_id and role_name as strings to allo
 
 ```python
 from trustyroles.arpd_update import arpd_update
-arpd_update.add_external_id('<external_id>', role_name='test-role')
+arpd_update.add_external_id(external_id='<external_id>', role_name='test-role')
 ```
 
 ####  Remove ExternalId
@@ -118,11 +117,4 @@ Remove a Sid from a trust policy. Takes no arguments.
 ```python
 from trustyroles.arpd_update import arpd_update
 arpd_update.remove_sid(role_name='test-role')
-```
-
-####  Retain Policy
-Retain policy while making changes. Saves policy as JSON in current directory as policy.bk
-```python
-from trustyroles.arpd_update import arpd_update
-arpd_update.retain_policy(role_name='test-role')
 ```

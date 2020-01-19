@@ -84,9 +84,10 @@ def _main():
     )
 
     args = vars(PARSER.parse_args())
+    
+    if args['backup_policy'] is None:
+        backup_policy = False
 
-    if args['backup_policy']:
-        backup_policy = True
 
     if args['method'] == 'update':
         arpd = update_arn(
