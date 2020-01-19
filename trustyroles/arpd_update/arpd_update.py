@@ -161,7 +161,8 @@ def get_arpd(role_name: str, session=None) -> Dict:
 
     role = iam_client.get_role(RoleName=role_name)
 
-    return role['Role']['AssumeRolePolicyDocument']
+    if __name__ != '__main__'
+        return role['Role']['AssumeRolePolicyDocument']
 
 def add_external_id(external_id: str, role_name: str, session=None, retain_policy=False) -> Dict:
     """The add_external_id method takes an external_id and role_name as strings
@@ -367,5 +368,5 @@ def remove_sid(role_name: str, session=None, retain_policy=False) -> Dict:
 
     return arpd
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     _main()
