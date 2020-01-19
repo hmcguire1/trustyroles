@@ -74,7 +74,7 @@ def _main():
 
     PARSER.add_argument(
         '--retain_policy',
-        action='store_false',
+        action='store_true',
         required=False,
         help='''Retain policy content when adding or deleting ARN in a policy.
         Saves policy JSON in current directory as policy.bk'''
@@ -85,7 +85,8 @@ def _main():
     if args['method'] == 'update':
         arpd = update_arn(
             args['arn'],
-            args['update_role']
+            args['update_role'],
+            retain_policy=False
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -93,7 +94,8 @@ def _main():
     elif args['method'] == 'remove':
         arpd = remove_arn(
             args['arn'],
-            args['update_role']
+            args['update_role'],
+            retain_policy=False
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -123,25 +125,34 @@ def _main():
     if args['add_external_id'] is not None:
         arpd = add_external_id(
             external_id=args['add_external_id'],
-            role_name=args['update_role']
+            role_name=args['update_role'],
+            retain_policy=False
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
 
     if args['remove_external_id']:
         arpd = remove_external_id(
-            role_name=args['update_role']
+            role_name=args['update_role'],
+            retain_policy=False
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
 
     if args['add_sid']:
-        arpd = add_sid(role_name=args['update_role'], sid=args['add_sid'])
+        arpd = add_sid(
+            role_name=args['update_role'], 
+            sid=args['add_sid'],
+            retain_policy=False
+        )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
 
     if args['remove_sid']:
-        arpd = remove_sid(role_name=args['update_role'])
+        arpd = remove_sid(
+            role_name=args['update_role'],
+            retain_policy=False
+        )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
 
