@@ -286,7 +286,7 @@ def remove_arn(arn_list: List, role_name: str, session=None, retain_policy=False
     arpd['Statement'][0]['Principal']['AWS'] = old_principal_list
 
     if retain_policy:
-        retain_policy(role_name=role_name, policy=arpd)
+        retain_policy(policy=arpd)
         
     try:
         iam_client.update_assume_role_policy(
