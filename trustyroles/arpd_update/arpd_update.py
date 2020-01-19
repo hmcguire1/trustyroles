@@ -74,7 +74,7 @@ def _main():
 
     PARSER.add_argument(
         '--retain_policy',
-        action='store_true',
+        action='store_false',
         required=False,
         help='''Retain policy content when adding or deleting ARN in a policy.
         Saves policy JSON in current directory as policy.bk'''
@@ -302,7 +302,7 @@ def remove_arn(arn_list: List, role_name: str, session=None, retain_policy=False
 def retain_policy(policy: Dict) -> None:
     """
     The retain_policy method creates a backup of previous
-    policy in current directory as policy.bk
+    policy in current directory as <ISO-time>.policy.bk
     """
 
     with open(os.getcwd() + '/' + datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ") + '.policy.bk', "w") as file:
