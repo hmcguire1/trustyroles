@@ -72,6 +72,14 @@ def _main():
         help='Remove a Sid from a trust policy. Takes no arguments.'
     )
 
+    PARSER.add_argument(
+        '--retain_policy',
+        action='store_true',
+        required=False,
+        help='''Retain policy content when adding or deleting ARN in a policy.
+        Saves policy JSON in current directory as policy.bk'''
+    )
+
     args = vars(PARSER.parse_args())
 
     if args['method'] == 'update':
@@ -136,6 +144,11 @@ def _main():
         arpd = remove_sid(role_name=args['update_role'])
 
         print(json.dumps(arpd['Statement'][0], indent=4))
+
+    if args['retain_policy']:
+        role_name = args['update_role']
+        arpd = get_arpd(role_name=role_name)
+        retain_policy(role_name=role_name, policy=arpd)
 
 def get_arpd(role_name: str, session=None) -> Dict:
     """The get_arpd method takes in a role_name as a string
