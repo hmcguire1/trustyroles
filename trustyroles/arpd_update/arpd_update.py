@@ -85,10 +85,10 @@ def _main():
 
     args = vars(PARSER.parse_args())
     
-    if args['backup_policy'] is None:
-        backup_policy = False
-    else:
+    if args['backup_policy']:
         backup_policy = True
+    else:
+        backup_policy = False
 
 
     if args['method'] == 'update':
