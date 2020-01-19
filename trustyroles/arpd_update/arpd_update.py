@@ -351,12 +351,12 @@ def remove_sid(role_name: str, session=None, retain_policy=False) -> Dict:
 
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
-    
-    if retain_policy:
-        retain_policy(role_name=role_name, policy=arpd)
 
     if arpd['Statement'][0]['Sid'] is not None:
         arpd['Statement'][0].pop('Sid')
+
+        if retain_policy:
+            retain_policy(role_name=role_name, policy=arpd)
 
         try:
             iam_client.update_assume_role_policy(
