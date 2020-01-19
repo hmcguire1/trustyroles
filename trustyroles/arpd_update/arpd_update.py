@@ -81,15 +81,11 @@ def _main():
     )
 
     args = vars(PARSER.parse_args())
-    
-    if args['retain_policy']:
-        RETAIN_POLICY = True
 
     if args['method'] == 'update':
         arpd = update_arn(
             args['arn'],
-            args['update_role'],
-            retain_policy=RETAIN_POLICY
+            args['update_role']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -97,8 +93,7 @@ def _main():
     elif args['method'] == 'remove':
         arpd = remove_arn(
             args['arn'],
-            args['update_role'],
-            retain_policy=RETAIN_POLICY
+            args['update_role']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -128,16 +123,14 @@ def _main():
     if args['add_external_id'] is not None:
         arpd = add_external_id(
             external_id=args['add_external_id'],
-            role_name=args['update_role'],
-            retain_policy=RETAIN_POLICY
+            role_name=args['update_role']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
 
     if args['remove_external_id']:
         arpd = remove_external_id(
-            role_name=args['update_role'],
-            retain_policy=RETAIN_POLICY
+            role_name=args['update_role']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -145,16 +138,14 @@ def _main():
     if args['add_sid']:
         arpd = add_sid(
             role_name=args['update_role'], 
-            sid=args['add_sid'],
-            retain_policy=RETAIN_POLICY
+            sid=args['add_sid']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
 
     if args['remove_sid']:
         arpd = remove_sid(
-            role_name=args['update_role'],
-            retain_policy=RETAIN_POLICY
+            role_name=args['update_role']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
