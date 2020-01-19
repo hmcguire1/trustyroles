@@ -148,7 +148,7 @@ def _main():
     if args['retain_policy']:
         role_name = args['update_role']
         arpd = get_arpd(role_name=role_name)
-        retain_policy(role_name=role_name, policy=arpd)
+        retain_policy(policy=arpd)
 
 def get_arpd(role_name: str, session=None) -> Dict:
     """The get_arpd method takes in a role_name as a string
