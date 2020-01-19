@@ -179,7 +179,7 @@ def add_external_id(external_id: str, role_name: str, session=None, retain_polic
     arpd['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
     
     if retain_policy:
-        retain_policy(role_name=role_name, policy=arpd)
+        retain_policy(role_name=role_name, policy=arpd, retain_policy=False)
     
     try:
         iam_client.update_assume_role_policy(
