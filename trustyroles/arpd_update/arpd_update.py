@@ -306,7 +306,7 @@ def retain_policy(role_name: str, policy: Dict) -> None:
     """
 
     with open(os.getcwd() + '/' + datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ") + '.policy.bk', "w") as file:
-        json.dump(policy, file, indent=4)
+        json.dump(policy, file, ensure_ascii=False, indent=4)
 
 def add_sid(role_name: str, sid: str, session=None, retain_policy=False) -> Dict:
     """
