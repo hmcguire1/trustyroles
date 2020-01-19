@@ -5,7 +5,7 @@ import os
 import json
 import logging
 import argparse
-import datetime
+from datetime import datetime
 
 from typing import List, Dict
 import boto3 # type: ignore
@@ -165,7 +165,7 @@ def add_external_id(external_id: str, role_name: str, session=None, retain_polic
     arpd['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
     
     if retain_policy:
-        retain_policy(role_name=role_name)
+        retain_policy(role_name=role_name, policy=arpd)
     
     try:
         iam_client.update_assume_role_policy(
@@ -193,7 +193,7 @@ def remove_external_id(role_name: str, session=None, retain_policy=False) -> Dic
     arpd['Statement'][0]['Condition'] = {}
     
     if retain_policy:
-        retain_policy(role_name=role_name)
+        retain_policy(role_name=role_name, policy=arpd)
 
     try:
         iam_client.update_assume_role_policy(
@@ -236,7 +236,7 @@ def update_arn(arn_list: List, role_name: str, session=None, retain_policy=False
                 arpd['Statement'][0]['Principal']['AWS'] = new_principal_list
     
     if retain_policy:
-        retain_policy(role_name=role_name)
+        retain_policy(role_name=role_name, policy=arpd)
 
     try:
         iam_client.update_assume_role_policy(
@@ -272,7 +272,7 @@ def remove_arn(arn_list: List, role_name: str, session=None, retain_policy=False
     arpd['Statement'][0]['Principal']['AWS'] = old_principal_list
 
     if retain_policy:
-        retain_policy(role_name=role_name)
+        retain_policy(role_name=role_name, policy=arpd)
         
     try:
         iam_client.update_assume_role_policy(
@@ -285,14 +285,14 @@ def remove_arn(arn_list: List, role_name: str, session=None, retain_policy=False
     except ClientError as ex:
         raise ex
 
-def retain_policy(role_name: str) -> None:
+def retain_policy(role_name: str, policy: Dict) -> None:
     """
     The retain_policy method creates a backup of previous
     policy in current directory as policy.bk
     """
 
     with open(os.getcwd() + '/' + datetime.now().strftime("%y-%m-%d::%H:%M:%S") + '.policy.bk', "w") as file:
-        json.dump(arpd, file)
+        json.dump(policy, file)
 
 def add_sid(role_name: str, sid: str, session=None, retain_policy=False) -> Dict:
     """
@@ -311,7 +311,7 @@ def add_sid(role_name: str, sid: str, session=None, retain_policy=False) -> Dict
     arpd['Statement'][0]['Sid'] = sid
     
     if retain_policy:
-        retain_policy(role_name=role_name)
+        retain_policy(role_name=role_name, policy=arpd)
 
     try:
         iam_client.update_assume_role_policy(
@@ -339,7 +339,7 @@ def remove_sid(role_name: str, session=None, retain_policy=False) -> Dict:
     arpd = role['Role']['AssumeRolePolicyDocument']
     
     if retain_policy:
-        retain_policy(role_name=role_name)
+        retain_policy(role_name=role_name, policy=arpd)
 
     if arpd['Statement'][0]['Sid'] is not None:
         arpd['Statement'][0].pop('Sid')
