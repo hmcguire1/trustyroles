@@ -179,7 +179,7 @@ def add_external_id(external_id: str, role_name: str, session=None, retain_polic
     arpd['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
     
     if retain_policy:
-        retain_policy(role_name=role_name, policy=arpd, retain_policy=False)
+        retain_policy(policy=arpd)
     
     try:
         iam_client.update_assume_role_policy(
@@ -207,7 +207,7 @@ def remove_external_id(role_name: str, session=None, retain_policy=False) -> Dic
     arpd['Statement'][0]['Condition'] = {}
     
     if retain_policy:
-        retain_policy(role_name=role_name, policy=arpd)
+        retain_policy(policy=arpd)
 
     try:
         iam_client.update_assume_role_policy(
@@ -250,7 +250,7 @@ def update_arn(arn_list: List, role_name: str, session=None, retain_policy=False
                 arpd['Statement'][0]['Principal']['AWS'] = new_principal_list
     
     if retain_policy:
-        retain_policy(role_name=role_name, policy=arpd)
+        retain_policy(policy=arpd)
 
     try:
         iam_client.update_assume_role_policy(
@@ -325,7 +325,7 @@ def add_sid(role_name: str, sid: str, session=None, retain_policy=False) -> Dict
     arpd['Statement'][0]['Sid'] = sid
     
     if retain_policy:
-        retain_policy(role_name=role_name, policy=arpd)
+        retain_policy(policy=arpd)
 
     try:
         iam_client.update_assume_role_policy(
@@ -354,7 +354,7 @@ def remove_sid(role_name: str, session=None, retain_policy=False) -> Dict:
 
     if arpd['Statement'][0]['Sid'] is not None:
         arpd['Statement'][0].pop('Sid')
-
+        
         if retain_policy:
             retain_policy(policy=arpd)
 
