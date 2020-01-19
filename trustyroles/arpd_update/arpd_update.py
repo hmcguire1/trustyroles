@@ -239,13 +239,6 @@ def update_arn(arn_list: List, role_name: str, session=None, retain_policy=False
         retain_policy(role_name=role_name)
 
     try:
-    if session:
-        iam_client = session.client('iam')
-    else:
-        iam_client = boto3.client('iam')
-
-    role = iam_client.get_role(RoleName=role_name)
-    arpd = role['Role']['AssumeRolePolicyDocument']
         iam_client.update_assume_role_policy(
             RoleName=role_name,
             PolicyDocument=json.dumps(arpd)
