@@ -356,7 +356,7 @@ def remove_sid(role_name: str, session=None, retain_policy=False) -> Dict:
         arpd['Statement'][0].pop('Sid')
 
         if retain_policy:
-            retain_policy(role_name=role_name, policy=arpd)
+            retain_policy(policy=arpd)
 
         try:
             iam_client.update_assume_role_policy(
