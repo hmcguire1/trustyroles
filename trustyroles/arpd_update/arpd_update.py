@@ -7,7 +7,7 @@ import logging
 import argparse
 from datetime import datetime
 
-from typing import List, Dict
+from typing import List, Dict, Tuple, Union
 import boto3 # type: ignore
 from botocore.exceptions import ClientError # type: ignore
 
@@ -235,8 +235,11 @@ def remove_external_id(role_name: str, session=None, backup_policy=False) -> Dic
         raise ex
 
 def update_arn(arn_list: List, role_name: str, session=None, backup_policy=False) -> Dict:
-    """The update_arn method takes a list of ARNS(arn_list) and a role_name
+    """The update_arn method takes a multiple ARNS(arn_list) and a role_name
         to add to trust policy of suppplied role."""
+
+    if isinstance(arn_list, str):
+        arn_list = [arn_list]
 
     if session:
         iam_client = session.client('iam')
@@ -246,26 +249,20 @@ def update_arn(arn_list: List, role_name: str, session=None, backup_policy=False
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
     old_principal_list = arpd['Statement'][0]['Principal']['AWS']
-
+    
     if backup_policy:
         retain_policy(policy=arpd)
-
-    for arn in arn_list:
-        if arn not in old_principal_list:
-            if isinstance(old_principal_list, list):
-                for old_arn in arn_list:
-                    old_principal_list.append(old_arn)
-
-                arpd['Statement'][0]['Principal']['AWS'] = old_principal_list
-
-            else:
-                new_principal_list = []
-                for old_arn in arn_list:
-                    new_principal_list.append(old_arn)
-
-                new_principal_list.append(old_principal_list)
-                arpd['Statement'][0]['Principal']['AWS'] = new_principal_list
-
+        
+    if isinstance(old_principal_list, list):
+        for arn in arn_list:
+            arpd['Statement'][0]['Principal']['AWS'].append(arn)
+    else:
+        old_principal_list = [old_principal_list]
+        
+        for arn in arn_list:
+            arpd['Statement'][0]['Principal']['AWS'] = old_principal_list
+            arpd['Statement'][0]['Principal']['AWS'].append(arn)
+            
     try:
         iam_client.update_assume_role_policy(
             RoleName=role_name,
@@ -278,7 +275,7 @@ def update_arn(arn_list: List, role_name: str, session=None, backup_policy=False
         raise ex
 
 def remove_arn(arn_list: List, role_name: str, session=None, backup_policy=False) -> Dict:
-    """The remove_arn method takes in a string or list of ARNs and a role_name
+    """The remove_arn method takes in a string or multiple of ARNs and a role_name
         to remove ARNS from trust policy of supplied role."""
 
     if session:
@@ -289,18 +286,13 @@ def remove_arn(arn_list: List, role_name: str, session=None, backup_policy=False
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
     old_principal_list = arpd['Statement'][0]['Principal']['AWS']
-
+    
     if backup_policy:
         retain_policy(policy=arpd)
 
-    if isinstance(arn_list, list):
-        for arn in arn_list:
-            if arn in old_principal_list:
-                old_principal_list.remove(arn)
-    else:
-        old_principal_list.remove(arn_list)
-
-    arpd['Statement'][0]['Principal']['AWS'] = old_principal_list
+    for arn in arn_list:
+        if arn in old_principal_list:
+            arpd['Statement'][0]['Principal']['AWS'].remove(arn)
 
     try:
         iam_client.update_assume_role_policy(
