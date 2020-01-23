@@ -97,13 +97,29 @@ def _main():
         help='S3 bucket name for backup policy. Takes a string'
     )
 
+    PARSER.add_argument(
+        '--key',
+        type=str,
+        required=False,
+        help='S3 key name for restoring S3 policy. Takes a string'
+    )
+
     args = vars(PARSER.parse_args())
 
-    if args['backup_policy'] == 'local':
-        if args['dir_path']:
-            dir_path = args['dir_path']
-    elif ['backup_policy'] == 's3':
-        bucket = args['bucket']
+    if args['backup_policy']:
+        if args['backup_policy'] == 'local':
+            if args['dir_path']:
+                dir_path = args['dir_path']
+            else:
+                dir_path = os.getcwd()
+
+            bucket = None
+        elif args['backup_policy'] == 's3':
+            bucket = args['bucket']
+            dir_path = None
+    else:
+        dir_path = os.getcwd()
+        bucket = ''
 
     if args['method'] == 'update':
         arpd = update_arn(
@@ -127,16 +143,6 @@ def _main():
         arpd = get_arpd(
             args['update_role']
         )
-    elif args['method'] == 'restore' and args['backup_policy']:
-        if args['backup_policy'].lower() == 'local' and args['file_path']:
-            restore_from_backup(
-                role_name=args['update_role'],
-                location_type='local',
-                file_path=args['file_path']
-
-                )
-        print(json.dumps(arpd['Statement'][0], indent=4))
-
         if args['json']:
             print(json.dumps(arpd['Statement'][0], indent=4))
 
@@ -154,12 +160,31 @@ def _main():
             if arpd['Statement'][0]['Condition']:
                 print(f"  {arpd['Statement'][0]['Condition']}")
 
+    elif args['method'] == 'restore' and args['backup_policy']:
+        if args['backup_policy'].lower() == 'local' and args['file_path']:
+            restore_from_backup(
+                role_name=args['update_role'],
+                location_type='local',
+                file_path=args['file_path']
+            )
+        elif args['backup_policy'].lower() == 's3':
+            restore_from_backup(
+                role_name=args['update_role'],
+                location_type='s3',
+                file_path='',
+                key=args['key'],
+                bucket=bucket
+            )
+
+        print(json.dumps(arpd['Statement'][0], indent=4))
+
     if args['add_external_id']:
         arpd = add_external_id(
             external_id=args['add_external_id'],
             role_name=args['update_role'],
             dir_path=dir_path,
-            bucket=bucket
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -168,7 +193,8 @@ def _main():
         arpd = remove_external_id(
             role_name=args['update_role'],
             dir_path=dir_path,
-            bucket=bucket
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -224,15 +250,16 @@ def update_arn(role_name: str, arn_list: List, dir_path: Optional[str], session=
     arpd = role['Role']['AssumeRolePolicyDocument']
     old_principal_list = arpd['Statement'][0]['Principal']['AWS']
 
-    if backup_policy.lower() == 'local':
-        if dir_path:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local',
-                          dir_path=dir_path)
-        else:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local')
-    elif backup_policy.lower() == 's3':
-        retain_policy(policy=arpd, role_name=role_name, location_type='s3',
-                      bucket=bucket)
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
 
     if isinstance(old_principal_list, list):
         for arn in arn_list:
@@ -271,15 +298,16 @@ def remove_arn(role_name: str, arn_list: List, dir_path: Optional[str], session=
     arpd = role['Role']['AssumeRolePolicyDocument']
     old_principal_list = arpd['Statement'][0]['Principal']['AWS']
 
-    if backup_policy.lower() == 'local':
-        if dir_path:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local',
-                          dir_path=dir_path)
-        else:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local')
-    elif backup_policy.lower() == 's3':
-        retain_policy(policy=arpd, role_name=role_name, location_type='s3',
-                      bucket=bucket)
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
 
     for arn in arn_list:
         if arn in old_principal_list:
@@ -312,15 +340,16 @@ def add_external_id(role_name: str, external_id: str, dir_path: Optional[str],
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
 
-    if backup_policy.lower() == 'local':
-        if dir_path:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local',
-                          dir_path=dir_path)
-        else:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local')
-    elif backup_policy.lower() == 's3':
-        retain_policy(policy=arpd, role_name=role_name, location_type='s3',
-                      bucket=bucket)
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
 
     arpd['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
 
@@ -350,15 +379,16 @@ def remove_external_id(role_name: str, dir_path: Optional[str], session=None,
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
 
-    if backup_policy.lower() == 'local':
-        if dir_path:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local',
-                          dir_path=dir_path)
-        else:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local')
-    elif backup_policy.lower() == 's3':
-        retain_policy(policy=arpd, role_name=role_name, location_type='s3',
-                      bucket=bucket)
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
 
     arpd['Statement'][0]['Condition'] = {}
 
@@ -389,15 +419,16 @@ def add_sid(role_name: str, sid: str, dir_path: Optional[str], session=None,
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
 
-    if backup_policy.lower() == 'local':
-        if dir_path:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local',
-                          dir_path=dir_path)
-        else:
-            retain_policy(policy=arpd, role_name=role_name, location_type='local')
-    elif backup_policy.lower() == 's3':
-        retain_policy(policy=arpd, role_name=role_name, location_type='s3',
-                      bucket=bucket)
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
 
     arpd['Statement'][0]['Sid'] = sid
 
@@ -509,12 +540,19 @@ def restore_from_backup(role_name: str, location_type: str, session=None,
             Key=key,
             Filename=filename
         )
-        with open(new_file) as file:
-            arpd = file.read()
 
+
+
+###BROKEN HERE#######
+
+
+
+        with open(new_file, 'r') as file:
+            arpd = file.read()
+            return arpd
     iam_client.update_assume_role_policy(
         RoleName=role_name,
-        PolicyDocument=json.dumps(arpd)
+        PolicyDocument=arpd
     )
 
     if new_file:
