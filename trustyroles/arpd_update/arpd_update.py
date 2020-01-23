@@ -91,6 +91,13 @@ def _main():
     )
 
     PARSER.add_argument(
+        '--file_path',
+        type=str,
+        required=False,
+        help='File for backup policy. Takes a string'
+    )
+
+    PARSER.add_argument(
         '--bucket',
         type=str,
         required=False,
