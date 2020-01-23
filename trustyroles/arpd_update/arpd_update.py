@@ -162,13 +162,13 @@ def _main():
 
     elif args['method'] == 'restore' and args['backup_policy']:
         if args['backup_policy'].lower() == 'local' and args['file_path']:
-            restore_from_backup(
+            arpd = restore_from_backup(
                 role_name=args['update_role'],
                 location_type='local',
                 file_path=args['file_path']
             )
-        elif args['backup_policy'].lower() == 's3':
-            restore_from_backup(
+        elif args['backup_policy'].lower() == 's3': 
+            arpd = restore_from_backup(
                 role_name=args['update_role'],
                 location_type='s3',
                 file_path='',
@@ -521,11 +521,11 @@ def restore_from_backup(role_name: str, location_type: str, session=None,
 
     if location_type.lower() == 'local':
         with open(file_path, 'r') as file:
-            arpd = file.read()
+            policy = file.read()
 
         iam_client.update_assume_role_policy(
             RoleName=role_name,
-            PolicyDocument=json.dumps(arpd)
+            PolicyDocument=policy
         )
     elif location_type.lower() == 's3':
         if session:
@@ -535,28 +535,24 @@ def restore_from_backup(role_name: str, location_type: str, session=None,
 
         filename = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ") + f".{role_name}.dl"
 
-        new_file = s3_client.download_file(
+        s3_client.download_file(
             Bucket=bucket,
             Key=key,
             Filename=filename
         )
 
+        with open(filename, 'rb') as file:
+            policy = file.read().decode()
+        os.remove(filename)
+    
 
-
-###BROKEN HERE#######
-
-
-
-        with open(new_file, 'r') as file:
-            arpd = file.read()
-            return arpd
     iam_client.update_assume_role_policy(
         RoleName=role_name,
-        PolicyDocument=arpd
+        PolicyDocument=policy
     )
 
-    if new_file:
-        os.remove(new_file)
+    return json.loads(policy)
+
 
 if __name__ == '__main__':
     _main()
