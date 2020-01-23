@@ -17,7 +17,7 @@ PARSER = argparse.ArgumentParser()
 
 def _main():
     """The _main method can take in a list of ARNs, role to update,
-        and method [get, update, remove]."""
+        and method [get, update, remove, restore]."""
     PARSER.add_argument(
         '-a', '--arn',
         nargs='+',
@@ -36,7 +36,7 @@ def _main():
         '-m', '--method',
         type=str,
         required=False,
-        choices=['get', 'update', 'remove'],
+        choices=['get', 'update', 'remove', 'restore'],
         help='Takes choice of method to get, update, or remove.'
     )
 
@@ -114,7 +114,6 @@ def _main():
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
-
     elif args['method'] == 'remove':
         arpd = remove_arn(
             args['arn'],
@@ -124,11 +123,19 @@ def _main():
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
-
     elif args['method'] == 'get':
         arpd = get_arpd(
             args['update_role']
         )
+    elif args['method'] == 'restore' and args['backup_policy']:
+        if args['backup_policy'].lower() == 'local' and args['file_path']:
+            restore_from_backup(
+                role_name=args['update_role'],
+                location_type='local',
+                file_path=args['file_path']
+
+                )
+        print(json.dumps(arpd['Statement'][0], indent=4))
 
         if args['json']:
             print(json.dumps(arpd['Statement'][0], indent=4))
@@ -444,7 +451,8 @@ def remove_sid(role_name: str, dir_path: Optional[str], session=None,
 
     return arpd
 
-def retain_policy(role_name: str, policy: Dict, location_type: Optional[str] = None,
+def retain_policy(role_name: str, policy: Dict, session=None,
+                  location_type: Optional[str] = None,
                   dir_path=os.getcwd(), bucket: Optional[str] = None) -> None:
     """
     The retain_policy method creates a backup of previous
@@ -457,10 +465,13 @@ def retain_policy(role_name: str, policy: Dict, location_type: Optional[str] = N
                   + f".{role_name}.bk", "w") as file:
             json.dump(policy, file, ensure_ascii=False, indent=4)
     elif location_type.lower() == 's3':
-        s3 = boto3.client('s3')
+        if session:
+            s3_client = session.client('s3')
+        else:
+            s3_client = boto3.client('s3')
 
         try:
-            s3.put_object(
+            s3_client.put_object(
                 Bucket=bucket,
                 Key=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
                 + f".{role_name}.bk",
@@ -469,7 +480,45 @@ def retain_policy(role_name: str, policy: Dict, location_type: Optional[str] = N
         except ClientError as error:
             raise error
 
-def restore_from_backup():
-    pass
+def restore_from_backup(role_name: str, location_type: str, session=None,
+                        bucket: Optional[str] = None, key: Optional[str] = None,
+                        file_path: Optional[str] = None) -> None:
+    if session:
+        iam_client = session.client('iam')
+    else:
+        iam_client = boto3.client('iam')
+
+    if location_type.lower() == 'local':
+        with open(file_path, 'r') as file:
+            arpd = file.read()
+
+        iam_client.update_assume_role_policy(
+            RoleName=role_name,
+            PolicyDocument=json.dumps(arpd)
+        )
+    elif location_type.lower() == 's3':
+        if session:
+            s3_client = session.client('s3')
+        else:
+            s3_client = boto3.client('s3')
+
+        filename = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ") + f".{role_name}.dl"
+
+        new_file = s3_client.download_file(
+            Bucket=bucket,
+            Key=key,
+            Filename=filename
+        )
+        with open(new_file) as file:
+            arpd = file.read()
+
+    iam_client.update_assume_role_policy(
+        RoleName=role_name,
+        PolicyDocument=json.dumps(arpd)
+    )
+
+    if new_file:
+        os.remove(new_file)
+
 if __name__ == '__main__':
     _main()
