@@ -48,14 +48,14 @@ def _main():
     )
 
     PARSER.add_argument(
-        '-r', '--remove_external_id',
+        '--remove_external_id',
         action='store_true',
         required=False,
         help='Method for removing externalId condition. Takes no arguments'
     )
 
     PARSER.add_argument(
-        '-j', '--json',
+        '--json',
         action='store_true',
         required=False,
         help='Add to print json in get method.'
