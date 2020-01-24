@@ -133,7 +133,8 @@ def _main():
             args['arn'],
             args['update_role'],
             dir_path=dir_path,
-            bucket=bucket
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -142,7 +143,8 @@ def _main():
             args['arn'],
             args['update_role'],
             dir_path=dir_path,
-            bucket=bucket
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -180,7 +182,8 @@ def _main():
                 location_type='s3',
                 file_path='',
                 key=args['key'],
-                bucket=bucket
+                bucket=bucket,
+                backup_policy=args['backup_policy']
             )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -211,7 +214,8 @@ def _main():
             role_name=args['update_role'],
             sid=args['add_sid'],
             dir_path=dir_path,
-            bucket=bucket
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
@@ -220,7 +224,8 @@ def _main():
         arpd = remove_sid(
             role_name=args['update_role'],
             dir_path=dir_path,
-            bucket=bucket
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
 
         print(json.dumps(arpd['Statement'][0], indent=4))
