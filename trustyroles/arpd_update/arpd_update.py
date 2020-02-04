@@ -230,13 +230,15 @@ def _main():
 
         print(json.dumps(arpd['Statement'][0], indent=4))
 
-def get_arpd(role_name: str, session=None) -> Dict:
+def get_arpd(role_name: str, session=None, client=None) -> Dict:
     """The get_arpd method takes in a role_name as a string
     and provides trusted ARNS and Conditions.
     """
 
     if session:
         iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
@@ -244,17 +246,17 @@ def get_arpd(role_name: str, session=None) -> Dict:
 
     return role['Role']['AssumeRolePolicyDocument']
 
-def update_arn(role_name: str, arn_list: List, dir_path: Optional[str], session=None,
-               backup_policy: Optional[str] = '', bucket: Optional[str] = None) -> Dict:
+def update_arn(role_name: str, arn_list: List, dir_path: Optional[str], client=None,
+               session=None, backup_policy: Optional[str] = '', 
+               bucket: Optional[str] = None) -> Dict:
     """The update_arn method takes a multiple ARNS(arn_list) and a role_name
         to add to trust policy of suppplied role.
     """
 
-    if isinstance(arn_list, str):
-        arn_list = [arn_list]
-
     if session:
         iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
@@ -295,7 +297,7 @@ def update_arn(role_name: str, arn_list: List, dir_path: Optional[str], session=
         raise error
 
 def remove_arn(role_name: str, arn_list: List, dir_path: Optional[str], session=None,
-               backup_policy: Optional[str] = '',
+               client=None, backup_policy: Optional[str] = '',
                bucket: Optional[str] = None) -> Dict:
     """The remove_arn method takes in a string or multiple of ARNs and a role_name
         to remove ARNS from trust policy of supplied role.
@@ -303,6 +305,8 @@ def remove_arn(role_name: str, arn_list: List, dir_path: Optional[str], session=
 
     if session:
         iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
@@ -337,7 +341,7 @@ def remove_arn(role_name: str, arn_list: List, dir_path: Optional[str], session=
         raise error
 
 def add_external_id(role_name: str, external_id: str, dir_path: Optional[str],
-                    session=None, backup_policy: Optional[str] = '',
+                    client=None, session=None, backup_policy: Optional[str] = '',
                     bucket: Optional[str] = None) -> Dict:
     """
     The add_external_id method takes an external_id and role_name as strings
@@ -346,6 +350,8 @@ def add_external_id(role_name: str, external_id: str, dir_path: Optional[str],
 
     if session:
         iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
@@ -377,7 +383,7 @@ def add_external_id(role_name: str, external_id: str, dir_path: Optional[str],
         raise error
 
 def remove_external_id(role_name: str, dir_path: Optional[str], session=None,
-                       backup_policy: Optional[str] = '',
+                       client=None, backup_policy: Optional[str] = '',
                        bucket: Optional[str] = None) -> Dict:
     """The remove_external_id method takes a role_name as a string
         to allow the removal of an externalId condition.
@@ -385,6 +391,8 @@ def remove_external_id(role_name: str, dir_path: Optional[str], session=None,
 
     if session:
         iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
@@ -416,7 +424,7 @@ def remove_external_id(role_name: str, dir_path: Optional[str], session=None,
         raise error
 
 def add_sid(role_name: str, sid: str, dir_path: Optional[str], session=None,
-            backup_policy: Optional[str] = '',
+            client=None, backup_policy: Optional[str] = '',
             bucket: Optional[str] = None) -> Dict:
     """
     The add_sid method adds a statement ID to
@@ -425,6 +433,8 @@ def add_sid(role_name: str, sid: str, dir_path: Optional[str], session=None,
 
     if session:
         iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
@@ -456,7 +466,7 @@ def add_sid(role_name: str, sid: str, dir_path: Optional[str], session=None,
         raise ex
 
 def remove_sid(role_name: str, dir_path: Optional[str], session=None,
-               backup_policy: Optional[str] = '',
+               client=None, backup_policy: Optional[str] = '',
                bucket: Optional[str] = None) -> Dict:
     """
     The remove_sid method removes the statement ID
@@ -465,6 +475,8 @@ def remove_sid(role_name: str, dir_path: Optional[str], session=None,
 
     if session:
         iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
@@ -494,7 +506,7 @@ def remove_sid(role_name: str, dir_path: Optional[str], session=None,
 
     return arpd
 
-def retain_policy(role_name: str, policy: Dict, session=None,
+def retain_policy(role_name: str, policy: Dict, session=None, client=None,
                   location_type: Optional[str] = None,
                   dir_path=os.getcwd(), bucket: Optional[str] = None) -> None:
     """
@@ -507,9 +519,12 @@ def retain_policy(role_name: str, policy: Dict, session=None,
         with open(dir_path + '/' + datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
                   + f".{role_name}.bk", "w") as file:
             json.dump(policy, file, ensure_ascii=False, indent=4)
+            
     elif location_type.lower() == 's3':
         if session:
             s3_client = session.client('s3')
+        elif client:
+            s3_client = client
         else:
             s3_client = boto3.client('s3')
 
@@ -524,10 +539,14 @@ def retain_policy(role_name: str, policy: Dict, session=None,
             raise error
 
 def restore_from_backup(role_name: str, location_type: str, session=None,
-                        bucket: Optional[str] = None, key: Optional[str] = None,
+                        client=None, bucket: Optional[str] = None, 
+                        key: Optional[str] = None,
                         file_path: Optional[str] = None) -> None:
+
     if session:
         iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
