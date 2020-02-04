@@ -656,7 +656,7 @@ def restore_from_backup(
 
         s3_client.download_file(Bucket=bucket, Key=key, Filename=filename)
 
-       # incompat type here (BinaryIO and TextIO)
+        # incompat type here (BinaryIO and TextIO)
         with open(filename, "rb") as file:
             # str doesn't have read decode apparently
             policy = file.read().decode()
