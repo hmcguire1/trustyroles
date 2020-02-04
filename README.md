@@ -118,3 +118,9 @@ Remove a Sid from a trust policy. Takes no arguments.
 from trustyroles.arpd_update import arpd_update
 arpd_update.remove_sid(role_name='test-role')
 ```
+
+### Testing
+
+```
+python -m pytest -vv ./trustyroles/arpd_update/tests/
+```

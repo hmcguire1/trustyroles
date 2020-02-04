@@ -1,56 +1,73 @@
-import os
-import json
-import boto3  # type: ignore
-from moto import mock_iam  # type: ignore
+import moto  # type: ignore
 import pytest  # type: ignore
 from trustyroles.arpd_update import arpd_update  # type: ignore
 
-@pytest.fixture(scope='function')
-def aws_credentials():
-    """Mocked AWS Credentials for moto."""
-    os.environ['AWS_ACCESS_KEY_ID'] = 'testing'
-    os.environ['AWS_SECRET_ACCESS_KEY'] = 'testing'
-    os.environ['AWS_SECURITY_TOKEN'] = 'testing'
-    os.environ['AWS_SESSION_TOKEN'] = 'testing'
-
+mock_aws_account = moto.mock_iam()
+mock_aws_account.start()
 
 initial_policy = {
-  "Version": "2012-10-17",
-  "Statement": {
-    "Effect": "Allow",
-    "Principal": {"Service": "ec2.amazonaws.com"},
-    "Action": "sts:AssumeRole"
-  }
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {"Service": "ec2.amazonaws.com"},
+            "Action": "sts:AssumeRole",
+        }
+    ],
+}
+
+policy_with_condition = {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Condition": {"StringEquals": {"sts:ExternalId": "123456"}},
+            "Effect": "Allow",
+            "Principal": {"Service": "ec2.amazonaws.com"},
+            "Action": "sts:AssumeRole",
+        }
+    ],
 }
 
 
-def create_role(policy: dict) -> None:
-    boto3.client('iam').create_role(RoleName='test-123', 
-                                    AssumeRolePolicyDocument=json.dumps(policy))
+policy_with_empty_condition = {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Condition": {},
+            "Effect": "Allow",
+            "Principal": {"Service": "ec2.amazonaws.com"},
+            "Action": "sts:AssumeRole",
+        }
+    ],
+}
 
 
-def delete_role():
-    boto3.client('iam').delete_role(RoleName='test-123')
+@pytest.fixture
+def iam_role():
+    import json
+    import boto3  # type: ignore
+
+    role = "test-123"
+    iam = boto3.client("iam")
+    iam.create_role(RoleName=role, AssumeRolePolicyDocument=json.dumps(initial_policy))
+    yield role
 
 
-@mock_iam
-def test_get_arpd():
-    create_role()
-    assert arpd_update.get_arpd(role_name="test-123") == initial_policy
-    delete_role()
+def test_get_arpd(iam_role) -> None:
+    assert arpd_update.get_arpd(role_name=iam_role) == initial_policy
 
 
-"""
-@mock_iam
-def test_add_external_id():
-    create_role()
-    assert arpd_update.add_external_id("123456", "test-123") == policy
-    delete_role()
+def test_add_external_id(iam_role):
+    assert (
+        arpd_update.add_external_id(
+            external_id="123456", role_name=iam_role, dir_path=None
+        )
+        == policy_with_condition
+    )
 
 
-@mock_iam
-def test_remove_external_id():
-    create_role(policy=initial_policy)
-    assert arpd_update.remove_external_id("123456", "test-123") == policy
-   delete_role()
-"""
+def test_remove_external_id(iam_role):
+    assert (
+        arpd_update.remove_external_id(role_name=iam_role, dir_path=None)
+        == policy_with_empty_condition
+    )
