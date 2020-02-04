@@ -5,8 +5,9 @@ import os
 import json
 import logging
 import argparse
+from datetime import datetime
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 import boto3 # type: ignore
 from botocore.exceptions import ClientError # type: ignore
 
@@ -16,7 +17,7 @@ PARSER = argparse.ArgumentParser()
 
 def _main():
     """The _main method can take in a list of ARNs, role to update,
-        and method [get, update, remove]."""
+        and method [get, update, remove, restore]."""
     PARSER.add_argument(
         '-a', '--arn',
         nargs='+',
@@ -35,7 +36,7 @@ def _main():
         '-m', '--method',
         type=str,
         required=False,
-        choices=['get', 'update', 'remove'],
+        choices=['get', 'update', 'remove', 'restore'],
         help='Takes choice of method to get, update, or remove.'
     )
 
@@ -47,27 +48,22 @@ def _main():
     )
 
     PARSER.add_argument(
-        '-r', '--remove_external_id',
+        '--remove_external_id',
+        action='store_true',
+        required=False,
         help='Method for removing externalId condition. Takes no arguments'
     )
 
     PARSER.add_argument(
-        '-j', '--json',
+        '--json',
         action='store_true',
         required=False,
         help='Add to print json in get method.'
     )
 
     PARSER.add_argument(
-        '--retain_policy',
-        action='store_true',
-        required=False,
-        help='''Retain policy content when adding or deleting ARN in a policy.
-        Saves policy JSON in current directory as policy.bk'''
-    )
-
-    PARSER.add_argument(
         '--add_sid',
+        type=str,
         required=False,
         help='Add a Sid to trust policy. Takes a string.'
     )
@@ -79,83 +75,299 @@ def _main():
         help='Remove a Sid from a trust policy. Takes no arguments.'
     )
 
+    PARSER.add_argument(
+        '--backup_policy',
+        type=str,
+        required=False,
+        help='''Creates a backup of previous policy
+    in current directory as <ISO-time>.policy.bk'''
+    )
+
+    PARSER.add_argument(
+        '--dir_path',
+        type=str,
+        required=False,
+        help='Path to directory for backup policy. Takes a string'
+    )
+
+    PARSER.add_argument(
+        '--file_path',
+        type=str,
+        required=False,
+        help='File for backup policy. Takes a string'
+    )
+
+    PARSER.add_argument(
+        '--bucket',
+        type=str,
+        required=False,
+        help='S3 bucket name for backup policy. Takes a string'
+    )
+
+    PARSER.add_argument(
+        '--key',
+        type=str,
+        required=False,
+        help='S3 key name for restoring S3 policy. Takes a string'
+    )
+
     args = vars(PARSER.parse_args())
+
+    if args['backup_policy']:
+        if args['backup_policy'] == 'local':
+            if args['dir_path']:
+                dir_path = args['dir_path']
+            else:
+                dir_path = os.getcwd()
+
+            bucket = None
+        elif args['backup_policy'] == 's3':
+            bucket = args['bucket']
+            dir_path = None
+    else:
+        dir_path = os.getcwd()
+        bucket = ''
 
     if args['method'] == 'update':
         arpd = update_arn(
             args['arn'],
-            args['update_role']
+            args['update_role'],
+            dir_path=dir_path,
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
+
         print(json.dumps(arpd['Statement'][0], indent=4))
     elif args['method'] == 'remove':
         arpd = remove_arn(
             args['arn'],
-            args['update_role']
+            args['update_role'],
+            dir_path=dir_path,
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
+
         print(json.dumps(arpd['Statement'][0], indent=4))
     elif args['method'] == 'get':
         arpd = get_arpd(
-            args['update_role'],
+            args['update_role']
         )
         if args['json']:
             print(json.dumps(arpd['Statement'][0], indent=4))
+
         else:
             print(f"\nARNS:")
+
             if isinstance(arpd['Statement'][0]['Principal']['AWS'], list):
                 for arn in arpd['Statement'][0]['Principal']['AWS']:
                     print(f"  {arn}")
             else:
                 print(f"  {arpd['Statement'][0]['Principal']['AWS']}")
+
             print(f"Conditions:")
+
             if arpd['Statement'][0]['Condition']:
                 print(f"  {arpd['Statement'][0]['Condition']}")
 
-    if args['add_external_id'] is not None:
+    elif args['method'] == 'restore' and args['backup_policy']:
+        if args['backup_policy'].lower() == 'local' and args['file_path']:
+            arpd = restore_from_backup(
+                role_name=args['update_role'],
+                location_type='local',
+                file_path=args['file_path']
+            )
+        elif args['backup_policy'].lower() == 's3': 
+            arpd = restore_from_backup(
+                role_name=args['update_role'],
+                location_type='s3',
+                file_path='',
+                key=args['key'],
+                bucket=bucket,
+                backup_policy=args['backup_policy']
+            )
+
+        print(json.dumps(arpd['Statement'][0], indent=4))
+
+    if args['add_external_id']:
         arpd = add_external_id(
             external_id=args['add_external_id'],
-            role_name=args['update_role']
+            role_name=args['update_role'],
+            dir_path=dir_path,
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
+
         print(json.dumps(arpd['Statement'][0], indent=4))
+
     if args['remove_external_id']:
         arpd = remove_external_id(
-            role_name=args['update_role']
+            role_name=args['update_role'],
+            dir_path=dir_path,
+            bucket=bucket,
+            backup_policy=args['backup_policy']
         )
+
         print(json.dumps(arpd['Statement'][0], indent=4))
-    if args['retain_policy']:
-        arpd = retain_policy(role_name=args['update_role'])
-        print(json.dumps(arpd['Statement'][0], indent=4))
+
     if args['add_sid']:
-        arpd = add_sid(role_name=args['update_role'], sid=args['add_sid'])
+        arpd = add_sid(
+            role_name=args['update_role'],
+            sid=args['add_sid'],
+            dir_path=dir_path,
+            bucket=bucket,
+            backup_policy=args['backup_policy']
+        )
+
         print(json.dumps(arpd['Statement'][0], indent=4))
+
     if args['remove_sid']:
-        arpd = remove_sid(role_name=args['update_role'])
-        print(arpd['Statement'][0])
+        arpd = remove_sid(
+            role_name=args['update_role'],
+            dir_path=dir_path,
+            bucket=bucket,
+            backup_policy=args['backup_policy']
+        )
+
         print(json.dumps(arpd['Statement'][0], indent=4))
 
-
-def get_arpd(role_name: str, client=None) -> Dict:
+def get_arpd(role_name: str, session=None, client=None) -> Dict:
     """The get_arpd method takes in a role_name as a string
-    and provides trusted ARNS and Conditions."""
-    if client:
-        iam_client = client.client('iam')
+    and provides trusted ARNS and Conditions.
+    """
+
+    if session:
+        iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
+
     return role['Role']['AssumeRolePolicyDocument']
 
-def add_external_id(external_id: str, role_name: str, client=None) -> Dict:
-    """The add_external_id method takes an external_id and role_name as strings
-        to allow the addition of an externalId condition."""
-    if client:
-        iam_client = client.client('iam')
+def update_arn(role_name: str, arn_list: List, dir_path: Optional[str], client=None,
+               session=None, backup_policy: Optional[str] = '', 
+               bucket: Optional[str] = None) -> Dict:
+    """The update_arn method takes a multiple ARNS(arn_list) and a role_name
+        to add to trust policy of suppplied role.
+    """
+
+    if session:
+        iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
+    old_principal_list = arpd['Statement'][0]['Principal']['AWS']
+
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
+
+    if isinstance(old_principal_list, list):
+        for arn in arn_list:
+            arpd['Statement'][0]['Principal']['AWS'].append(arn)
+    else:
+        old_principal_list = [old_principal_list]
+
+        for arn in arn_list:
+            arpd['Statement'][0]['Principal']['AWS'] = old_principal_list
+            arpd['Statement'][0]['Principal']['AWS'].append(arn)
+
+    try:
+        iam_client.update_assume_role_policy(
+            RoleName=role_name,
+            PolicyDocument=json.dumps(arpd)
+        )
+
+        return arpd
+
+    except ClientError as error:
+        raise error
+
+def remove_arn(role_name: str, arn_list: List, dir_path: Optional[str], session=None,
+               client=None, backup_policy: Optional[str] = '',
+               bucket: Optional[str] = None) -> Dict:
+    """The remove_arn method takes in a string or multiple of ARNs and a role_name
+        to remove ARNS from trust policy of supplied role.
+    """
+
+    if session:
+        iam_client = session.client('iam')
+    elif client:
+        iam_client = client
+    else:
+        iam_client = boto3.client('iam')
+
+    role = iam_client.get_role(RoleName=role_name)
+    arpd = role['Role']['AssumeRolePolicyDocument']
+    old_principal_list = arpd['Statement'][0]['Principal']['AWS']
+
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
+
+    for arn in arn_list:
+        if arn in old_principal_list:
+            arpd['Statement'][0]['Principal']['AWS'].remove(arn)
+
+    try:
+        iam_client.update_assume_role_policy(
+            RoleName=role_name,
+            PolicyDocument=json.dumps(arpd)
+        )
+
+        return arpd
+
+    except ClientError as error:
+        raise error
+
+def add_external_id(role_name: str, external_id: str, dir_path: Optional[str],
+                    client=None, session=None, backup_policy: Optional[str] = '',
+                    bucket: Optional[str] = None) -> Dict:
+    """
+    The add_external_id method takes an external_id and role_name as strings
+    to allow the addition of an externalId condition.
+    """
+
+    if session:
+        iam_client = session.client('iam')
+    elif client:
+        iam_client = client
+    else:
+        iam_client = boto3.client('iam')
+
+    role = iam_client.get_role(RoleName=role_name)
+    arpd = role['Role']['AssumeRolePolicyDocument']
+
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
 
     arpd['Statement'][0]['Condition'] = {'StringEquals': {'sts:ExternalId': external_id}}
 
@@ -164,21 +376,39 @@ def add_external_id(external_id: str, role_name: str, client=None) -> Dict:
             RoleName=role_name,
             PolicyDocument=json.dumps(arpd)
         )
-        return arpd
-    except ClientError as ex:
-        raise ex
 
-def remove_external_id(role_name: str, client=None) -> Dict:
+        return arpd
+
+    except ClientError as error:
+        raise error
+
+def remove_external_id(role_name: str, dir_path: Optional[str], session=None,
+                       client=None, backup_policy: Optional[str] = '',
+                       bucket: Optional[str] = None) -> Dict:
     """The remove_external_id method takes a role_name as a string
-        to allow the removal of an externalId condition."""
-    if client:
-        iam_client = client.client('iam')
+        to allow the removal of an externalId condition.
+    """
+
+    if session:
+        iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
+
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
 
     arpd['Statement'][0]['Condition'] = {}
 
@@ -187,108 +417,40 @@ def remove_external_id(role_name: str, client=None) -> Dict:
             RoleName=role_name,
             PolicyDocument=json.dumps(arpd)
         )
+
         return arpd
-    except ClientError as ex:
-        raise ex
 
-def update_arn(arn_list: List, role_name: str, client=None) -> Dict:
-    """The update_arn method takes a list of ARNS(arn_list) and a role_name
-        to add to trust policy of suppplied role."""
-    if client:
-        iam_client = client.client('iam')
-    else:
-        iam_client = boto3.client('iam')
+    except ClientError as error:
+        raise error
 
-    iam_client = boto3.client('iam')
-    role = iam_client.get_role(RoleName=role_name)
-    arpd = role['Role']['AssumeRolePolicyDocument']
-    old_principal_list = arpd['Statement'][0]['Principal']['AWS']
-
-    for arn in arn_list:
-        if arn not in old_principal_list:
-            if isinstance(old_principal_list, list):
-                for old_arn in arn_list:
-                    old_principal_list.append(old_arn)
-                arpd['Statement'][0]['Principal']['AWS'] = old_principal_list
-            else:
-                new_principal_list = []
-                for old_arn in arn_list:
-                    new_principal_list.append(old_arn)
-                new_principal_list.append(old_principal_list)
-                arpd['Statement'][0]['Principal']['AWS'] = new_principal_list
-
-    try:
-        iam_client.update_assume_role_policy(
-            RoleName=role_name,
-            PolicyDocument=json.dumps(arpd)
-        )
-        return arpd
-    except ClientError as ex:
-        raise ex
-
-def remove_arn(arn_list: List, role_name: str, client=None) -> Dict:
-    """The remove_arn method takes in a string or list of ARNs and a role_name
-        to remove ARNS from trust policy of supplied role."""
-    if client:
-        iam_client = client.client('iam')
-    else:
-        iam_client = boto3.client('iam')
-
-    iam_client = boto3.client('iam')
-    role = iam_client.get_role(RoleName=role_name)
-    arpd = role['Role']['AssumeRolePolicyDocument']
-    old_principal_list = arpd['Statement'][0]['Principal']['AWS']
-
-    if isinstance(arn_list, list):
-        for arn in arn_list:
-            if arn in old_principal_list:
-                old_principal_list.remove(arn)
-    else:
-        old_principal_list.remove(arn_list)
-
-    arpd['Statement'][0]['Principal']['AWS'] = old_principal_list
-
-    try:
-        iam_client.update_assume_role_policy(
-            RoleName=role_name,
-            PolicyDocument=json.dumps(arpd)
-        )
-        return arpd
-    except ClientError as ex:
-        raise ex
-
-def retain_policy(role_name: str, client=None) -> Dict:
-    """
-    The retain_policy method creates a backup of previous
-    policy in current directory as policy.bk
-    """
-    if client:
-        iam_client = client.client('iam')
-    else:
-        iam_client = boto3.client('iam')
-
-    iam_client = boto3.client('iam')
-    role = iam_client.get_role(RoleName=role_name)
-    arpd = role['Role']['AssumeRolePolicyDocument']
-
-    with open(os.getcwd() + '/policy.bk', "w") as file:
-        json.dump(arpd, file)
-
-    return arpd
-
-def add_sid(role_name: str, sid: str, client=None) -> Dict:
+def add_sid(role_name: str, sid: str, dir_path: Optional[str], session=None,
+            client=None, backup_policy: Optional[str] = '',
+            bucket: Optional[str] = None) -> Dict:
     """
     The add_sid method adds a statement ID to
     the assume role policy document
     """
-    if client:
-        iam_client = client.client('iam')
+
+    if session:
+        iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
-    iam_client = boto3.client('iam')
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
+
+    if backup_policy:
+        if backup_policy.lower() == 'local':
+            if dir_path:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                            dir_path=dir_path)
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type='local')
+        elif backup_policy.lower() == 's3':
+            retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                        bucket=bucket)
 
     arpd['Statement'][0]['Sid'] = sid
 
@@ -297,34 +459,131 @@ def add_sid(role_name: str, sid: str, client=None) -> Dict:
             RoleName=role_name,
             PolicyDocument=json.dumps(arpd)
         )
+
         return arpd
+
     except ClientError as ex:
         raise ex
 
-def remove_sid(role_name: str, client=None) -> Dict:
+def remove_sid(role_name: str, dir_path: Optional[str], session=None,
+               client=None, backup_policy: Optional[str] = '',
+               bucket: Optional[str] = None) -> Dict:
     """
     The remove_sid method removes the statement ID
     from the assume role policy document
     """
-    if client:
-        iam_client = client.client('iam')
+
+    if session:
+        iam_client = session.client('iam')
+    elif client:
+        iam_client = client
     else:
         iam_client = boto3.client('iam')
 
     role = iam_client.get_role(RoleName=role_name)
     arpd = role['Role']['AssumeRolePolicyDocument']
 
-    if arpd['Statement'][0]['Sid'] is not None:
+    if backup_policy.lower() == 'local':
+        if dir_path:
+            retain_policy(policy=arpd, role_name=role_name, location_type='local',
+                          dir_path=dir_path)
+        else:
+            retain_policy(policy=arpd, role_name=role_name, location_type='local')
+    elif backup_policy.lower() == 's3':
+        retain_policy(policy=arpd, role_name=role_name, location_type='s3',
+                      bucket=bucket)
+
+    if arpd['Statement'][0]['Sid']:
         arpd['Statement'][0].pop('Sid')
+
         try:
             iam_client.update_assume_role_policy(
                 RoleName=role_name,
                 PolicyDocument=json.dumps(arpd)
             )
-        except ClientError as ex:
-            raise ex
+        except ClientError as error:
+            raise error
+
     return arpd
 
+def retain_policy(role_name: str, policy: Dict, session=None, client=None,
+                  location_type: Optional[str] = None,
+                  dir_path=os.getcwd(), bucket: Optional[str] = None) -> None:
+    """
+    The retain_policy method creates a backup of previous
+    policy in current directory by default as <ISO-time>.<RoleName>.bk or specified directory
+    for local file or with s3 to specified bucket and key name.
+    """
 
-if __name__ == "__main__":
+    if location_type.lower() == 'local':
+        with open(dir_path + '/' + datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                  + f".{role_name}.bk", "w") as file:
+            json.dump(policy, file, ensure_ascii=False, indent=4)
+            
+    elif location_type.lower() == 's3':
+        if session:
+            s3_client = session.client('s3')
+        elif client:
+            s3_client = client
+        else:
+            s3_client = boto3.client('s3')
+
+        try:
+            s3_client.put_object(
+                Bucket=bucket,
+                Key=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                + f".{role_name}.bk",
+                Body=json.dumps(policy).encode()
+            )
+        except ClientError as error:
+            raise error
+
+def restore_from_backup(role_name: str, location_type: str, session=None,
+                        client=None, bucket: Optional[str] = None, 
+                        key: Optional[str] = None,
+                        file_path: Optional[str] = None) -> None:
+
+    if session:
+        iam_client = session.client('iam')
+    elif client:
+        iam_client = client
+    else:
+        iam_client = boto3.client('iam')
+
+    if location_type.lower() == 'local':
+        with open(file_path, 'r') as file:
+            policy = file.read()
+
+        iam_client.update_assume_role_policy(
+            RoleName=role_name,
+            PolicyDocument=policy
+        )
+    elif location_type.lower() == 's3':
+        if session:
+            s3_client = session.client('s3')
+        else:
+            s3_client = boto3.client('s3')
+
+        filename = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ") + f".{role_name}.dl"
+
+        s3_client.download_file(
+            Bucket=bucket,
+            Key=key,
+            Filename=filename
+        )
+
+        with open(filename, 'rb') as file:
+            policy = file.read().decode()
+        os.remove(filename)
+    
+
+    iam_client.update_assume_role_policy(
+        RoleName=role_name,
+        PolicyDocument=policy
+    )
+
+    return json.loads(policy)
+
+
+if __name__ == '__main__':
     _main()
