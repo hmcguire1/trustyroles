@@ -275,21 +275,21 @@ def update_arn(
     arpd = role["Role"]["AssumeRolePolicyDocument"]
     old_principal_list = arpd["Statement"][0]["Principal"]["AWS"]
 
-    assert backup_policy
-    if backup_policy.lower() == "local":
-        if dir_path:
+    if backup_policy:
+        if backup_policy.lower() == "local":
+            if dir_path:
+                retain_policy(
+                    policy=arpd,
+                    role_name=role_name,
+                    location_type="local",
+                    dir_path=dir_path,
+                )
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type="local")
+        elif backup_policy.lower() == "s3":
             retain_policy(
-                policy=arpd,
-                role_name=role_name,
-                location_type="local",
-                dir_path=dir_path,
+                policy=arpd, role_name=role_name, location_type="s3", bucket=bucket
             )
-        else:
-            retain_policy(policy=arpd, role_name=role_name, location_type="local")
-    elif backup_policy.lower() == "s3":
-        retain_policy(
-            policy=arpd, role_name=role_name, location_type="s3", bucket=bucket
-        )
 
     if isinstance(old_principal_list, list):
         for arn in arn_list:
@@ -336,21 +336,21 @@ def remove_arn(
     arpd = role["Role"]["AssumeRolePolicyDocument"]
     old_principal_list = arpd["Statement"][0]["Principal"]["AWS"]
 
-    assert backup_policy
-    if backup_policy.lower() == "local":
-        if dir_path:
+    if backup_policy:
+        if backup_policy.lower() == "local":
+            if dir_path:
+                retain_policy(
+                    policy=arpd,
+                    role_name=role_name,
+                    location_type="local",
+                    dir_path=dir_path,
+                )
+            else:
+                retain_policy(policy=arpd, role_name=role_name, location_type="local")
+        elif backup_policy.lower() == "s3":
             retain_policy(
-                policy=arpd,
-                role_name=role_name,
-                location_type="local",
-                dir_path=dir_path,
+                policy=arpd, role_name=role_name, location_type="s3", bucket=bucket
             )
-        else:
-            retain_policy(policy=arpd, role_name=role_name, location_type="local")
-    elif backup_policy.lower() == "s3":
-        retain_policy(
-            policy=arpd, role_name=role_name, location_type="s3", bucket=bucket
-        )
 
     for arn in arn_list:
         if arn in old_principal_list:
@@ -479,7 +479,7 @@ def add_sid(
     dir_path: Optional[str],
     session=None,
     client=None,
-    backup_policy: Optional[str] = "",
+    backup_policy: str = "",
     bucket: Optional[str] = None,
 ) -> Dict:
     """
@@ -497,7 +497,6 @@ def add_sid(
     role = iam_client.get_role(RoleName=role_name)
     arpd = role["Role"]["AssumeRolePolicyDocument"]
 
-    assert backup_policy
     if backup_policy.lower() == "local":
         if dir_path:
             retain_policy(
@@ -531,7 +530,7 @@ def remove_sid(
     dir_path: Optional[str],
     session=None,
     client=None,
-    backup_policy: Optional[str] = "",
+    backup_policy: str = "",
     bucket: Optional[str] = None,
 ) -> Dict:
     """
@@ -549,7 +548,6 @@ def remove_sid(
     role = iam_client.get_role(RoleName=role_name)
     arpd = role["Role"]["AssumeRolePolicyDocument"]
 
-    assert backup_policy
     if backup_policy.lower() == "local":
         if dir_path:
             retain_policy(
